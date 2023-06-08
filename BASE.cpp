@@ -100,7 +100,7 @@ int main()
     
     world->SetGlobalObjectBounds();
 
-    world->add_Revolver_basic(hi.GetWeaponTexture(1), true, Vector2f(0,0));
+    world->add_Revolver_basic(hi.GetWeaponTexture(1), false, Vector2f(400,400));
     while (window.isOpen())
     {
         Time dt = deltaClock.restart();                          // Кол-во времени между кадрами

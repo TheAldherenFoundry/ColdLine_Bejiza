@@ -361,7 +361,7 @@ public:
             door.update(window, player_2);
         }
         for (auto& makarov : m_Revolver_basic) {
-            makarov.update(dt, player_2, window);
+            makarov.update(dt, player_2, window, m_objects);
         }
         if (!CREATIVE_MODE) {
             WeaponCONTROL();
