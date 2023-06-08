@@ -156,7 +156,7 @@ public:
 	bool CanIMoveUP = 1;
 	bool CanIMoveDAUN = 1;
 
-	bool haveWeapon = true;
+	bool haveWeapon = false;
 
 	float MoveKeybordX = 0;
 	float MoveKeybordY = 0;

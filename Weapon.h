@@ -10,6 +10,7 @@
 #include "Entity.h"
 
 
+
 using namespace sf;
 using namespace std;
 
@@ -22,23 +23,76 @@ class  Revolver_basic : public Weapon
 {
 public:
 	Sprite m_sprite;
-	Vector2f position;
+	Vector2f StartDropPosition;
+	Vector2f DropPosition;
 	bool isTaked;
+	bool doTake = true;
+	bool isKill = false;
 	int ammo = 7;
+	float DropSight = 1.f;
+	float DropSpeed = 800.f;
 private:
 
 public:
 	Revolver_basic(Sprite& m_sprite, bool isTaked, Vector2f position) {
 		this->m_sprite = m_sprite;
 		this->isTaked = isTaked;
-		m_sprite.setPosition(position);
+		DropPosition = position;
 	}
 
-	void update(float& dt, Player& player, RenderWindow& window) {
-		if (m_sprite.getGlobalBounds().intersects(player.m_body.getGlobalBounds()) && player.haveWeapon) isTaked = true;
-		if (isTaked) {
+	void update(float& dt, Player& player, RenderWindow& window, vector<FloatRect>& Object) {
+		if(!isTaked) m_sprite.setPosition(DropPosition); // Позиция лежания/выкидываения
+		if (m_sprite.getGlobalBounds().intersects(player.m_body.getGlobalBounds()) && !player.haveWeapon){ // Поднятие
+			isTaked = true;
+			player.haveWeapon = true;
+		}
+		if (isTaked && doTake) { // В руках
 			m_sprite.setPosition(player.m_body.getPosition().x, player.m_body.getPosition().y);
 			m_sprite.setRotation(player.m_body.getRotation());
+			if (Mouse::isButtonPressed(Mouse::Right)) { // Выкидываем
+				player.haveWeapon = false;
+				doTake = false;
+			}
+			if (Mouse::isButtonPressed(Mouse::Left)) { // Стредяем
+
+			}
+		}
+		if (!doTake) { // Выкинуто
+			if (!isKill) {
+				StartDropPosition = player.m_body.getPosition();
+				DropPosition = player.m_aim.getPosition();
+			}
+			isKill = true;
+			for (auto& obj : Object) {
+				if (m_sprite.getGlobalBounds().intersects(obj)) {
+
+					sf::Vector2f directionVector = m_sprite.getPosition() - StartDropPosition;
+					sf::Vector2f normalizedDirection = directionVector / std::sqrt(directionVector.x * directionVector.x + directionVector.y * directionVector.y);
+
+					sf::Vector2f displacement = normalizedDirection * sqrt(DropPosition.x * StartDropPosition.x + DropPosition.y * StartDropPosition.y);;
+
+					StartDropPosition = DropPosition;
+					DropPosition = m_sprite.getPosition() + displacement;
+				}
+			}
+
+			if (DropSight > 0.f) {
+				sf::Vector2f direction = DropPosition - StartDropPosition;
+				sf::Vector2f normalizedDirection = direction / std::sqrt(direction.x * direction.x + direction.y * direction.y);
+				sf::Vector2f velocity = normalizedDirection * DropSpeed;
+				sf::Vector2f displacement = velocity * dt;
+
+				sf::Vector2f currentPosition = m_sprite.getPosition();
+				currentPosition += displacement;
+				m_sprite.setPosition(currentPosition);
+
+				DropSight -= dt * DropSight; // Уменьшаем DropSight со скоростью, умноженной на dt
+				if (DropSight < 0.1) DropSight = -1;
+			}
+			else
+			{
+
+			}
 		}
 		draw(window);
 	}
