@@ -26,12 +26,19 @@ public:
 	Vector2f StartDropPosition;
 	Vector2f DropPosition;
 	bool isTaked;
+	bool a = true;
 	bool doTake = true;
 	bool isKill = false;
+	bool onPosition = true;
 	int ammo = 7;
+	int ammoNum = 0;
 	float DropSight = 1.f;
 	float DropSpeed = 800.f;
+	float cooldown = 2.f;
+	float time = 2.f;
 private:
+	list<Bullet9x18> m_listBullets;
+	Bullet9x18 m_bullet;
 
 public:
 	Revolver_basic(Sprite& m_sprite, bool isTaked, Vector2f position) {
@@ -41,10 +48,14 @@ public:
 	}
 
 	void update(float& dt, Player& player, RenderWindow& window, vector<FloatRect>& Object) {
-		if(!isTaked) m_sprite.setPosition(DropPosition); // Позиция лежания/выкидываения
-		if (m_sprite.getGlobalBounds().intersects(player.m_body.getGlobalBounds()) && !player.haveWeapon){ // Поднятие
+		cooldown += dt;
+		time += dt;
+		if (!isTaked && onPosition == true) m_sprite.setPosition(DropPosition); // Позиция лежания/выкидываения
+		if (m_sprite.getGlobalBounds().intersects(player.m_body.getGlobalBounds()) && !player.haveWeapon && time > 2) { // Поднятие
 			isTaked = true;
+			doTake = true;
 			player.haveWeapon = true;
+			onPosition = false;
 		}
 		if (isTaked && doTake) { // В руках
 			m_sprite.setPosition(player.m_body.getPosition().x, player.m_body.getPosition().y);
@@ -52,18 +63,29 @@ public:
 			if (Mouse::isButtonPressed(Mouse::Right)) { // Выкидываем
 				player.haveWeapon = false;
 				doTake = false;
+				isTaked = false;
+				time = 0;
+				DropSight = 1.f;
+				a = true;
 			}
-			if (Mouse::isButtonPressed(Mouse::Left)) { // Стредяем
-
+			if (Mouse::isButtonPressed(Mouse::Left) && ammoNum < ammo && cooldown > 0.3) {
+				ammoNum++;
+				cooldown = 0;
+				sf::FloatRect bounds = m_sprite.getGlobalBounds(); // Получаем глобальные ограничивающие прямоугольника спрайта
+				sf::Vector2f center(bounds.left + bounds.width / 2, bounds.top + bounds.height / 2); // Вычисляем центр спрайта
+				m_bullet.setPosition(center);
+				m_bullet.SetRotation(m_sprite.getRotation() + 90);
+				m_listBullets.push_back(m_bullet);
 			}
 		}
 		if (!doTake) { // Выкинуто
-			if (!isKill) {
+			if (a) {//выполяется 1 раз
 				StartDropPosition = player.m_body.getPosition();
 				DropPosition = player.m_aim.getPosition();
 			}
+			a = false;
 			isKill = true;
-			for (auto& obj : Object) {
+			for (auto& obj : Object) { //Проверка на столкновения
 				if (m_sprite.getGlobalBounds().intersects(obj)) {
 
 					sf::Vector2f directionVector = m_sprite.getPosition() - StartDropPosition;
@@ -76,7 +98,7 @@ public:
 				}
 			}
 
-			if (DropSight > 0.f) {
+			if (DropSight > 0.f) {//обновление полета оружия когда выкинуто
 				sf::Vector2f direction = DropPosition - StartDropPosition;
 				sf::Vector2f normalizedDirection = direction / std::sqrt(direction.x * direction.x + direction.y * direction.y);
 				sf::Vector2f velocity = normalizedDirection * DropSpeed;
@@ -89,24 +111,23 @@ public:
 				DropSight -= dt * DropSight; // Уменьшаем DropSight со скоростью, умноженной на dt
 				if (DropSight < 0.1) DropSight = -1;
 			}
-			else
-			{
-
-			}
+		}
+		for (auto& bullet : m_listBullets) { // Обновление пуль
+			bullet.update(dt);
 		}
 		draw(window);
 	}
 
 	void draw(RenderWindow& window) {
+		for (auto& bullet : m_listBullets) {
+			bullet.draw(window);
+		}
 		window.draw(m_sprite);
 	}
 
 	void update(float& dt, RenderWindow& window) {
 
 	}
-
-private:
-
 };
 
 
