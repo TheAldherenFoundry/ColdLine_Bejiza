@@ -95,8 +95,7 @@ int main()
     for(int a = 0;a <= 320;a = a + 32)world->addWall(Vector2f(0, a), hi.GetWallTexture(1));
     for (int a = 32; a <= 320; a = a + 32)world->addWall(Vector2f(a, 0), hi.GetWallTexture(1));
     world->addOMD(Vector2f(100, 0), hi.GetWallTexture(1));
-    //world->add_Enemy(Vector2f(400, 500), 50, 50, Color::Red, 0);
-    
+    world->add_Enemy(Vector2f(400, 500), 50, 50, Color::Green, 0);
     
     world->SetGlobalObjectBounds();
 

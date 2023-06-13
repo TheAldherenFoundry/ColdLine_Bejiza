@@ -185,21 +185,23 @@ public:
 		n_legs.setSize(Vector2f(size, size));
 		n_legs.setOrigin(size / 2, size / 2);
 		n_legs.setPosition(position);
-		n_legs.setFillColor(Color::Cyan);
+		n_legs.setFillColor(Color::Magenta);
 
 		n_body.setSize(Vector2f(size / 1.5, size / 1.5));
 		n_body.setOrigin(size / 3, size / 3);
 		n_body.setPosition(position);
 		n_body.setFillColor(color);
 
+		enemyHeight = size;
+		enemyWidth = size;
+
 		n_body.setRotation(rotate);
 	}
 
 	void Update(float& deltaTime, RenderWindow& window, vector<FloatRect>& Object, Player& player) {
-		if(!isActive) n_body.setRotation(n_body.getRotation() + 100 * deltaTime);
-		else n_body.setRotation((atan2(player.m_body.getPosition().y - n_body.getPosition().y, player.m_body.getPosition().x - n_body.getPosition().x)) * 180 / M_PI);
+		if (!isActive) n_body.setRotation(n_body.getRotation() + 10 * deltaTime);
+		else playerAttack(deltaTime, Object, player);
 		Raycasts(Object, window, player);
-
 		draw(window);
 	}
 	void Update(float& deltaTime, RenderWindow& window, vector<FloatRect>& Object) {
@@ -261,6 +263,60 @@ public:
 		return; // Луч достиг предела без столкновения с препятствием
 	}
 
+	void playerAttack(float& dt, vector<FloatRect>& Object, Player& player) {
+		n_body.setRotation((atan2(player.m_body.getPosition().y - n_body.getPosition().y, player.m_body.getPosition().x - n_body.getPosition().x)) * 180 / M_PI);
+		enemyPosition = n_legs.getPosition();
+		sf::Vector2f newEnemyPosition = enemyPosition + enemyDirection * enemySpeed * dt;
+
+		bool isColliding = false;
+		for (const sf::FloatRect& wall : Object) {
+			if (n_legs.getGlobalBounds().intersects(wall)) {
+				isColliding = true;
+				break;
+			}
+		}
+
+		if (!isColliding) {
+			enemyPosition = newEnemyPosition;
+			dir++;
+			if (dir == 3) dir = 0;
+		}
+
+		float rotation = n_body.getRotation(); // Получение угла поворота
+		float angleInRadians = rotation * static_cast<float>(M_PI) / 180.0f; // Преобразование угла в радианы
+
+		// Вычисление компонентов вектора направления
+		float directionX = std::cos(angleInRadians);
+		float directionY = std::sin(angleInRadians);
+
+		switch (dir)
+		{
+		case 0:
+		{
+			sf::Vector2f forwardDirection(-enemyDirection.y, enemyDirection.x);
+			enemyDirection = forwardDirection;
+			break;
+		}
+		case 1:
+		{
+			sf::Vector2f forwardDirection(enemyDirection.y, -enemyDirection.x);
+			enemyDirection = forwardDirection;
+			break;
+		}
+		case 2:
+		{
+			sf::Vector2f forwardDirection(directionX, directionY); // Создание вектора направления
+			enemyDirection = forwardDirection;
+			break;
+		}
+		}
+
+		n_legs.setPosition(enemyPosition);
+		/*cout << enemyPosition.x << " " << enemyPosition.y << endl;
+		cout << dir << endl;*/
+		n_body.setPosition(n_legs.getPosition());
+	}
+
 	void drawLine(RenderWindow& window, VertexArray& line) {
 		window.draw(line);
 	}
@@ -270,11 +326,17 @@ public:
 		window.draw(n_body);
 	}
 
-private:
+public:
 	RectangleShape n_legs; // Ноги
 	RectangleShape n_body; // Тело
 	bool isActive = false; // Это нужно чтобы в один момент он перестал двигаться и напал на игрока
+	int dir = 0;
 	float n_speed; // Скорость
+	float enemySpeed = 100.0f; // Скорость врага
+	float enemyHeight;
+	float enemyWidth;
+	sf::Vector2f enemyPosition; // Позиция врага
+	sf::Vector2f enemyDirection; // Направление движения врага
 };
 
 /////////////////////////////////

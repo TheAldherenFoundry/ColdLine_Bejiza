@@ -3,6 +3,7 @@
 #include <iostream>
 #include <SFML/Graphics.hpp>
 #include <cmath>
+#include "Entity.h"
 
 using namespace std;
 using namespace sf;

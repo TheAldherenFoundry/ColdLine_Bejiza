@@ -47,7 +47,7 @@ public:
 		DropPosition = position;
 	}
 
-	void update(float& dt, Player& player, RenderWindow& window, vector<FloatRect>& Object) {
+	void update(float& dt, Player& player, RenderWindow& window, vector<FloatRect>& Object, vector<Enemy>& m_enemys) {
 		cooldown += dt;
 		time += dt;
 		if (!isTaked && onPosition == true) m_sprite.setPosition(DropPosition); // Позиция лежания/выкидываения
@@ -76,6 +76,14 @@ public:
 				m_bullet.setPosition(center);
 				m_bullet.SetRotation(m_sprite.getRotation() + 90);
 				m_listBullets.push_back(m_bullet);
+			}
+			if (Mouse::isButtonPressed(Mouse::Left) && ammoNum >= ammo && cooldown > 0.3) {
+				player.haveWeapon = false;
+				doTake = false;
+				isTaked = false;
+				time = 0;
+				DropSight = 1.f;
+				a = true;
 			}
 		}
 		if (!doTake) { // Выкинуто
@@ -112,8 +120,21 @@ public:
 				if (DropSight < 0.1) DropSight = -1;
 			}
 		}
-		for (auto& bullet : m_listBullets) { // Обновление пуль
-			bullet.update(dt);
+		for (auto bullet = m_listBullets.begin(); bullet != m_listBullets.end(); ) {
+			bullet->update(dt);
+			bool shouldRemoveBullet = false;
+			for (const auto& enem : m_enemys) {
+				if (bullet->getGlobalBounds().intersects(enem.n_body.getGlobalBounds())) {
+					shouldRemoveBullet = true;
+					break;
+				}
+			}
+			if (shouldRemoveBullet) {
+				bullet = m_listBullets.erase(bullet);
+			}
+			else {
+				++bullet;
+			}
 		}
 		draw(window);
 	}
