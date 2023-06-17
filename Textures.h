@@ -119,7 +119,7 @@ struct TEXTURES_MODULE
 	}
 
 	// 1 - Ðוגמכüגונ....
-	const Texture GetWeaponTexture(int x)
+	Texture& GetWeaponTexture(int x)
 	{
 		return REVOLVER_BASIC;
 	}

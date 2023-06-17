@@ -109,32 +109,32 @@ protected:
         return m_body.getPosition();
     }
 
-    
-    
+
+
     int getStepenBrankera()
     {
         return StepenBrankera;
     }
     Vector2f getNormal() const {
-    // Получаем позицию и размеры стены
-    Vector2f position = getPosition();
-    Vector2f size = getSize();
+        // Получаем позицию и размеры стены
+        Vector2f position = getPosition();
+        Vector2f size = getSize();
 
-    // Вычисляем центр стены
-    Vector2f center = position + size / 2.f;
+        // Вычисляем центр стены
+        Vector2f center = position + size / 2.f;
 
-    // Вычисляем точку на стене, от которой будет идти нормаль
-    // В данном примере выбираем середину левого края стены
-    Vector2f pointOnWall = Vector2f(position.x, center.y);
+        // Вычисляем точку на стене, от которой будет идти нормаль
+        // В данном примере выбираем середину левого края стены
+        Vector2f pointOnWall = Vector2f(position.x, center.y);
 
-    // Вычисляем вектор от точки на стене к центру стены
-    Vector2f wallToCenter = center - pointOnWall;
+        // Вычисляем вектор от точки на стене к центру стены
+        Vector2f wallToCenter = center - pointOnWall;
 
-    // Нормализуем вектор, чтобы получить единичную нормаль
-    Vector2f normal = normalize(wallToCenter);
+        // Нормализуем вектор, чтобы получить единичную нормаль
+        Vector2f normal = normalize(wallToCenter);
 
-    return normal;
-}
+        return normal;
+    }
 public:
     void CheckPaterochka(Player& Vladimir)
     {
@@ -148,24 +148,24 @@ public:
 
             if (playerPosition.x > objectBounds.left + objectBounds.width) {
                 Vladimir.CanIMoveLEFT = false;
-                
+
             }
 
-            if (playerPosition.y < objectBounds.top ) {
+            if (playerPosition.y < objectBounds.top) {
                 Vladimir.CanIMoveDAUN = false;
-            
+
             }
 
             if (playerPosition.y > objectBounds.top + objectBounds.height) {
-                 Vladimir.CanIMoveUP = false;
-                
+                Vladimir.CanIMoveUP = false;
+
             }
         }
     }
     /*void CheckPaterochka(Bull& Vladimir) // Для проверки столкновения с Пулей
     {
         if (Vladimir.getGlobalBounds().intersects(getGlobalBounds())) {
-            
+
             // если пуля попадет то это
 
         }
@@ -198,30 +198,30 @@ public:
         lineUp->color = Color::Red;
         lineLeft->color = Color::Red;
         lineRight->color = Color::Red;
-        
+
 
         o.draw(lineUp, 2, Lines);
         o.draw(lineDown, 2, Lines);
 
         o.draw(lineLeft, 2, Lines);
         o.draw(lineRight, 2, Lines);
-    } 
-    public:
-    
-        sf::Vector2f WallCenter(const sf::FloatRect& wallBounds)
-        {
-            float centerX = wallBounds.left + wallBounds.width / 2;
-            float centerY = wallBounds.top + wallBounds.height / 2;
-            return sf::Vector2f(centerX, centerY);
-        }
+    }
+public:
+
+    sf::Vector2f WallCenter(const sf::FloatRect& wallBounds)
+    {
+        float centerX = wallBounds.left + wallBounds.width / 2;
+        float centerY = wallBounds.top + wallBounds.height / 2;
+        return sf::Vector2f(centerX, centerY);
+    }
 
     Sprite GetShape()
     {
         return m_body;
     }
 
-    void update(RenderWindow& window)  {
-       
+    void update(RenderWindow& window) {
+
         window.draw(m_body);
     }
     void update(RenderWindow& window, Player& Vladimir) {
@@ -234,7 +234,7 @@ public:
     }
 
     //Wall() {} // Конструктор лего фури 
-    Wall(Vector2f position, Texture& texture){
+    Wall(Vector2f position, Texture& texture) {
         m_body.setPosition(position);
         m_body.setTexture(texture);
         StepenBrankera = 4;
@@ -245,14 +245,14 @@ public:
 protected:
     int hp;
     Sprite m_body;
-    bool GODVIEW = true; 
+    bool GODVIEW = true;
     int StepenBrankera; // 0 - Изничтожен 1 - Стекло 2 - Древо 3 - рикошетит пулю 4 - Обсидиан  (1 и 2 не держит пули) 2 - имеет сопротивление пулям
 };
 
 class Door : public Wall { // Из за запарой с коллизией двери будут закрыты, главный персонаж может их сломать оружием либо выбить. У каждого объекта класса World будет система "Степен Бранкера" для определения прочности объекта.
 public:
-    
-    Door(Vector2f position, Texture& texture) : Wall(position, texture){ 
+
+    Door(Vector2f position, Texture& texture) : Wall(position, texture) {
 
         StepenBrankera = 2;
         hp = 100;
@@ -332,14 +332,12 @@ public:
 
     void addWall(Vector2f position, Texture& texture)
     {
-        m_walls.emplace_back(position,texture);
+        m_walls.emplace_back(position, texture);
     }
 
-    void add_Revolver_basic(Texture texture, bool isTaked, Vector2f position) // Создаем оружие 
+    void add_Revolver_basic(Texture& texture, bool isTaked, Vector2f position) // Создаем оружие 
     {
-        Sprite sprite;
-        sprite.setTexture(texture);
-        m_Revolver_basic.emplace_back(sprite, isTaked, position);
+        m_Revolver_basic.emplace_back(texture, isTaked, position);
     }
 
     void add_Enemy(Vector2f position, float size, float speed, Color color, float rotate)
@@ -551,7 +549,7 @@ void World::WeaponCONTROL()
         for (auto& door : m_doora) {
             //revolver.SetBulletDamage(door.getGlobalBounds(), door.WallCenter(door.getGlobalBounds()));
         }
-        for (auto& wall : m_walls){
+        for (auto& wall : m_walls) {
             //revolver.SetBulletDamage(wall.getGlobalBounds(), wall.WallCenter(wall.getGlobalBounds()));
         }
     }
@@ -565,16 +563,16 @@ void World::UpdateParticles(float deltaTime)
             //revolver.m_particle.UpdateParticles(deltaTime, door.GetShape());
         }
         for (auto& wall : m_walls) {
-           // revolver.m_particle.UpdateParticles(deltaTime, wall.GetShape());
+            // revolver.m_particle.UpdateParticles(deltaTime, wall.GetShape());
         }
     }
 }
 //////////////////////////////////////////////////////////////////////////////////////
 
 void World::UpdateEnemys(float& deltaTime, RenderWindow& window, Player& player)
-{   
+{
     for (auto& enemy : m_enemys) {
-            enemy.Update(deltaTime, window, m_objects, player);
+        enemy.Update(deltaTime, window, m_objects, player);
     }
 }
 
@@ -597,7 +595,7 @@ void World::CreateOBJ(RectangleShape& sprite)
     {
         if (!isKeyPressed[1])
         {
-            addWall(sprite.getPosition(),HAMLET.GetWallTexture(1));
+            addWall(sprite.getPosition(), HAMLET.GetWallTexture(1));
             cout << "Ok" << endl;
             isKeyPressed[1] = true;
         }
@@ -622,7 +620,7 @@ void World::CreateOBJ(RectangleShape& sprite)
 
 }
 
-void World::ControlWCR(RenderWindow & window, float dt)
+void World::ControlWCR(RenderWindow& window, float dt)
 {
     // Проверяем состояние клавиши
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
@@ -656,7 +654,7 @@ void World::Movement(float deltaTime) {
 
     isMoving = false;
     // Передвижение клавиатурой
-    if (Keyboard::isKeyPressed(Keyboard::D)) { MoveKeybordX = 1 * deltaTime * speed; isMoving = true;}
+    if (Keyboard::isKeyPressed(Keyboard::D)) { MoveKeybordX = 1 * deltaTime * speed; isMoving = true; }
     if (Keyboard::isKeyPressed(Keyboard::A)) { MoveKeybordX = -1 * deltaTime * speed; isMoving = true; }
     if (Keyboard::isKeyPressed(Keyboard::W)) { MoveKeybordY = 1 * deltaTime * speed; isMoving = true; }
     if (Keyboard::isKeyPressed(Keyboard::S)) { MoveKeybordY = -1 * deltaTime * speed; isMoving = true; }
@@ -743,10 +741,3 @@ void World::updateTrail(sf::Vector2f position)
     }
 
 }
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// Изменение 1.2 
-// Дверь статичная
-// У каждого объекта класса World будет система  определения прочности объекта.
-// Все классы оптимизированы
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// Нужно сделать проскок пули с вероятностью сквозь дверь в зависимости от калибка пули (его вместе с классом Bullet нужно сделать)
