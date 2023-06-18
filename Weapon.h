@@ -30,6 +30,7 @@ public:
 	float DropSight = 1.f;
 	float DropSpeed = 800.f;
 	float cooldown = 2.f;
+	float cdFire = 0.3f;
 	float time = 2.f;
 private:
 	list<Bullet9x18> m_listBullets;
@@ -40,7 +41,7 @@ public:
 		cooldown += dt;
 		time += dt;
 		if (!isTaked && onPosition == true) m_sprite.setPosition(DropPosition); // Позиция лежания/выкидываения
-		if (m_sprite.getGlobalBounds().intersects(player.m_body.getGlobalBounds()) && !player.haveWeapon && time > 2) { // Поднятие
+		if (m_sprite.getGlobalBounds().intersects(player.m_body.getGlobalBounds()) && !player.haveWeapon && time > 2 && ammo != ammoNum) { // Поднятие
 			isTaked = true;
 			doTake = true;
 			player.haveWeapon = true;
@@ -57,7 +58,7 @@ public:
 				DropSight = 1.f;
 				a = true;
 			}
-			if (Mouse::isButtonPressed(Mouse::Left) && ammoNum < ammo && cooldown > 0.3) {
+			if (Mouse::isButtonPressed(Mouse::Left) && ammoNum < ammo && cooldown > cdFire) {
 				ammoNum++;
 				cooldown = 0;
 				sf::FloatRect bounds = m_sprite.getGlobalBounds(); // Получаем глобальные ограничивающие прямоугольника спрайта
@@ -66,7 +67,7 @@ public:
 				m_bullet.SetRotation(m_sprite.getRotation() + 90);
 				m_listBullets.push_back(m_bullet);
 			}
-			if (Mouse::isButtonPressed(Mouse::Left) && ammoNum >= ammo && cooldown > 0.3) {
+			if (Mouse::isButtonPressed(Mouse::Left) && ammoNum >= ammo && cooldown > cdFire) {
 				player.haveWeapon = false;
 				doTake = false;
 				isTaked = false;
@@ -84,14 +85,8 @@ public:
 			isKill = true;
 			for (auto& obj : Object) { //Проверка на столкновения
 				if (m_sprite.getGlobalBounds().intersects(obj)) {
-
-					sf::Vector2f directionVector = m_sprite.getPosition() - StartDropPosition;
-					sf::Vector2f normalizedDirection = directionVector / std::sqrt(directionVector.x * directionVector.x + directionVector.y * directionVector.y);
-
-					sf::Vector2f displacement = normalizedDirection * sqrt(DropPosition.x * StartDropPosition.x + DropPosition.y * StartDropPosition.y);;
-
-					StartDropPosition = DropPosition;
-					DropPosition = m_sprite.getPosition() + displacement;
+					DropSight = -1;
+					time = 2.f;
 				}
 			}
 
@@ -99,7 +94,7 @@ public:
 				sf::Vector2f direction = DropPosition - StartDropPosition;
 				sf::Vector2f normalizedDirection = direction / std::sqrt(direction.x * direction.x + direction.y * direction.y);
 				sf::Vector2f velocity = normalizedDirection * DropSpeed;
-				sf::Vector2f displacement = velocity * dt;
+				sf::Vector2f displacement = velocity * 5.f * dt;
 
 				sf::Vector2f currentPosition = m_sprite.getPosition();
 				currentPosition += displacement;
@@ -161,5 +156,28 @@ public:
 		DropSpeed = 300.f;
 
 		cooldown = 2.f;
+	}
+};
+
+class  MiniGun : public Weapon
+{
+private:
+
+	list<Bullet9x18> m_listBullets;
+	Bullet9x18 m_bullet;
+
+public:
+	MiniGun(Texture& m_texture, bool isTaked, Vector2f position) {
+		this->m_sprite.setTexture(m_texture);
+		this->isTaked = isTaked;
+		DropPosition = position;
+
+		ammo = 100;
+		ammoNum = 0;
+		DropSight = 0.5f;
+		DropSpeed = 300.f;
+		cdFire = 0.1f;
+
+		cooldown = 0.1f;
 	}
 };

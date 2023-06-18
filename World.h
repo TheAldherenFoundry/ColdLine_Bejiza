@@ -266,6 +266,7 @@ public:
 
     // Тут мы кучерявим оружие
     vector<Revolver_basic> m_Revolver_basic;
+    vector<MiniGun> m_MiniGun;
     // Тут мы кучерявим объекты мира
     vector<Wall> m_walls;
     vector<Door> m_doora;
@@ -340,9 +341,14 @@ public:
         m_Revolver_basic.emplace_back(texture, isTaked, position);
     }
 
-    void add_Enemy(Vector2f position, float size, float speed, Color color, float rotate)
+    void add_MiniGun(Texture& texture, bool isTaked, Vector2f position) // Создаем оружие 
     {
-        m_enemys.emplace_back(position, size, speed, color, rotate);
+        m_MiniGun.emplace_back(texture, isTaked, position);
+    }
+
+    void add_Enemy(Vector2f position, float size, float speed, Color color, float rotate, Texture& texture, float weapCD)
+    {
+        m_enemys.emplace_back(position, size, speed, color, rotate, texture, weapCD);
     }
 
     void addOMD(Vector2f position, Texture& texture)
@@ -359,6 +365,9 @@ public:
             door.update(window, player_2);
         }
         for (auto& makarov : m_Revolver_basic) {
+            makarov.update(dt, player_2, window, m_objects, m_enemys);
+        }
+        for (auto& makarov : m_MiniGun) {
             makarov.update(dt, player_2, window, m_objects, m_enemys);
         }
         if (!CREATIVE_MODE) {
@@ -404,6 +413,9 @@ public:
             door.update(window);
         }
         for (auto& makarov : m_Revolver_basic) {
+            makarov.update(dt, window);
+        }
+        for (auto& makarov : m_MiniGun) {
             makarov.update(dt, window);
         }
         if (!CREATIVE_MODE) {
@@ -554,11 +566,28 @@ void World::WeaponCONTROL()
         }
     }
 
+    for (auto& revolver : m_MiniGun) {
+        for (auto& door : m_doora) {
+            //revolver.SetBulletDamage(door.getGlobalBounds(), door.WallCenter(door.getGlobalBounds()));
+        }
+        for (auto& wall : m_walls) {
+            //revolver.SetBulletDamage(wall.getGlobalBounds(), wall.WallCenter(wall.getGlobalBounds()));
+        }
+    }
 }
 
 void World::UpdateParticles(float deltaTime)
 {
     for (auto& revolver : m_Revolver_basic) {
+        for (auto& door : m_doora) {
+            //revolver.m_particle.UpdateParticles(deltaTime, door.GetShape());
+        }
+        for (auto& wall : m_walls) {
+            // revolver.m_particle.UpdateParticles(deltaTime, wall.GetShape());
+        }
+    }
+
+    for (auto& revolver : m_MiniGun) {
         for (auto& door : m_doora) {
             //revolver.m_particle.UpdateParticles(deltaTime, door.GetShape());
         }

@@ -5,6 +5,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <list>
+#include "Bullet.h"
 
 using namespace sf;
 using namespace std;
@@ -181,7 +182,7 @@ private:
 class Enemy : public Entity
 {
 public:
-	Enemy(Vector2f position, float size, float speed, Color color, float rotate) : n_speed(speed) {
+	Enemy(Vector2f position, float size, float speed, Color color, float rotate, Texture& texture, float weapCD) : n_speed(speed) {
 		n_legs.setSize(Vector2f(size, size));
 		n_legs.setOrigin(size / 2, size / 2);
 		n_legs.setPosition(position);
@@ -195,6 +196,11 @@ public:
 		enemyHeight = size;
 		enemyWidth = size;
 
+		cd = weapCD;
+
+		n_sprite.setTexture(texture);
+		n_sprite.setPosition(Vector2f(10000, 10000));
+
 		n_body.setRotation(rotate);
 	}
 
@@ -204,6 +210,7 @@ public:
 		Raycasts(Object, window, player);
 		draw(window);
 	}
+
 	void Update(float& deltaTime, RenderWindow& window, vector<FloatRect>& Object) {
 		draw(window);
 	}
@@ -213,6 +220,7 @@ public:
 		int maxLine = 45;
 		int angle = 180;
 
+		isFire = false;
 		int temp;
 		for (int i = 0; i < angle; i += angle/maxLine)
 		{
@@ -254,6 +262,7 @@ public:
 				line[1].position = point;
 				line[1].color = sf::Color::Blue;
 				isActive = true;
+				isFire = true;
 				return; // Луч пересекся с препятствием
 			}
 		}
@@ -278,8 +287,13 @@ public:
 
 		if (!isColliding) {
 			enemyPosition = newEnemyPosition;
-			dir++;
+			dir = 2;
 			if (dir == 3) dir = 0;
+		}
+		else{
+			enemyPosition = newEnemyPosition;
+			dir--;
+			if (dir == -1) dir = 2;
 		}
 
 		float rotation = n_body.getRotation(); // Получение угла поворота
@@ -297,24 +311,39 @@ public:
 			enemyDirection = forwardDirection;
 			break;
 		}
+		break;
 		case 1:
 		{
 			sf::Vector2f forwardDirection(enemyDirection.y, -enemyDirection.x);
 			enemyDirection = forwardDirection;
 			break;
 		}
+		break;
 		case 2:
 		{
 			sf::Vector2f forwardDirection(directionX, directionY); // Создание вектора направления
 			enemyDirection = forwardDirection;
 			break;
 		}
+		break;
 		}
 
 		n_legs.setPosition(enemyPosition);
-		/*cout << enemyPosition.x << " " << enemyPosition.y << endl;
-		cout << dir << endl;*/
+		//cout << enemyPosition.x << " " << enemyPosition.y << endl;
+		cout << dir << endl;
 		n_body.setPosition(n_legs.getPosition());
+
+		// Стрельба
+
+		n_sprite.setRotation(n_body.getRotation());
+		n_sprite.setPosition(n_body.getPosition());
+		if (isFire && cd > time) {
+			time = 0;
+			sf::FloatRect bounds = n_sprite.getGlobalBounds(); // Получаем глобальные ограничивающие прямоугольника спрайта
+			sf::Vector2f center(bounds.left + bounds.width / 2, bounds.top + bounds.height / 2); // Вычисляем центр спрайта
+			
+		}
+		time += dt;
 	}
 
 	void drawLine(RenderWindow& window, VertexArray& line) {
@@ -324,35 +353,22 @@ public:
 	void draw(RenderWindow& window) {
 		window.draw(n_legs);
 		window.draw(n_body);
+		window.draw(n_sprite);
 	}
 
 public:
 	RectangleShape n_legs; // Ноги
 	RectangleShape n_body; // Тело
+	Sprite n_sprite;
 	bool isActive = false; // Это нужно чтобы в один момент он перестал двигаться и напал на игрока
-	int dir = 0;
+	bool isFire = false;
+	int dir = 2;
 	float n_speed; // Скорость
+	float cd;
+	float time = 0;
 	float enemySpeed = 100.0f; // Скорость врага
 	float enemyHeight;
 	float enemyWidth;
 	sf::Vector2f enemyPosition; // Позиция врага
 	sf::Vector2f enemyDirection; // Направление движения врага
 };
-
-/////////////////////////////////
-/// Враг пока что только бегает по точкам.
-///
-/////////////////////////////////
-
-//int temp = 100;
-//for (int i = 0; i < temp; i++)
-//{
-//	temp = (temp / 2) - i;
-//	float rotationRadians = (n_body.getRotation() + temp) * M_PI / 180.0f; // Конвертация градусов в радианы
-//	sf::Vector2f direction(std::cos(rotationRadians), std::sin(rotationRadians));
-//	Raycast(n_body.getPosition(), direction, 400, line, Object, player);
-//	temp = 100;
-// 
-// Версия 1.12
-// Добавлен класс CameraRoll, теперь камера следует за игроком (Есть еще метод отдачи оружия находится в Makarov->void fire ).
-// Чтобы менять чувстт. камеры это в DimaUpdate значение float
