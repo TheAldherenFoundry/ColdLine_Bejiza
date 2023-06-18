@@ -195,6 +195,7 @@ public:
 
 		enemyHeight = size;
 		enemyWidth = size;
+		startPosition = position;
 
 		cd = weapCD;
 
@@ -208,6 +209,13 @@ public:
 		if (!isActive) n_body.setRotation(n_body.getRotation() + 10 * deltaTime);
 		else playerAttack(deltaTime, Object, player);
 		if(II_Mode)Raycasts(Object, window, player);
+		if (isFire) a = true;
+		if (a) {
+			if (!isFire && newPointPosition.x == 0 && newPointPosition.y == 0) {
+				newPointPosition = player.m_body.getPosition();
+			}
+		}
+		if (!isFire) a = false;
 		draw(window);
 	}
 
@@ -221,6 +229,7 @@ public:
 		int angle = 180;
 
 		isFire = false;
+		see = false;
 		int temp;
 		for (int i = 0; i < angle; i += angle/maxLine)
 		{
@@ -232,7 +241,7 @@ public:
 			sf::Vector2f direction(std::cos(rotationRadians), std::sin(rotationRadians));
 			Raycast(n_body.getPosition(), direction, 500, line[i / (angle / maxLine)], Object, player);
 			drawLine(window, line[i / (angle / maxLine)]);
-		}
+		} 
 	}
 
 	void Raycast(const sf::Vector2f& origin, const sf::Vector2f& direction, float maxDistance,sf::VertexArray& line, vector<FloatRect>& Object, Player& player)
@@ -263,6 +272,7 @@ public:
 				line[1].color = sf::Color::Blue;
 				isActive = true;
 				isFire = true;
+				see = true;
 				return; // Луч пересекся с препятствием
 			}
 		}
@@ -273,64 +283,111 @@ public:
 	}
 
 	void playerAttack(float& dt, vector<FloatRect>& Object, Player& player) {
-		n_body.setRotation((atan2(player.m_body.getPosition().y - n_body.getPosition().y, player.m_body.getPosition().x - n_body.getPosition().x)) * 180 / M_PI);
-		enemyPosition = n_legs.getPosition();
-		sf::Vector2f newEnemyPosition = enemyPosition + enemyDirection * enemySpeed * dt;
+			float targetAngle = atan2(player.m_body.getPosition().y - n_body.getPosition().y, player.m_body.getPosition().x - n_body.getPosition().x);
 
-		bool isColliding = false;
-		for (const sf::FloatRect& wall : Object) {
-			if (n_legs.getGlobalBounds().intersects(wall)) {
-				isColliding = true;
-				break;
+			// Переводим углы в градусы
+			float currentAngle = n_body.getRotation();
+			float targetAngleDegrees = targetAngle * 180 / M_PI;
+
+			// Вычисляем разницу между текущим и целевым углом поворота
+			float angleDiff = targetAngleDegrees - currentAngle;
+
+			// Нормализуем разницу углов в диапазон от -180 до 180 градусов
+			if (angleDiff > 180) {
+				angleDiff -= 360;
+			}
+			else if (angleDiff < -180) {
+				angleDiff += 360;
+			}
+
+			// Определяем скорость поворота (здесь можно настроить подходящее значение)
+			float rotationSpeed = 90.0f;
+
+			// Интерполируем угол поворота плавно с помощью скорости
+			float rotationStep = rotationSpeed * dt; // deltaTime - время между кадрами
+
+			if (abs(angleDiff) <= rotationStep) {
+				// Если разница углов меньше шага поворота, просто устанавливаем целевой угол
+				n_body.setRotation(targetAngleDegrees);
+			}
+			else {
+				// В противном случае, изменяем текущий угол на шаг поворота
+				if (angleDiff > 0) {
+					currentAngle += rotationStep;
+				}
+				else {
+					currentAngle -= rotationStep;
+				}
+
+				// Устанавливаем новый угол поворота объекта
+				n_body.setRotation(currentAngle);
+			}
+		if (see) {
+			time1 = 0;
+		}
+		else {
+			if (time1 > 2.f) {
+
+			}
+			time1 += dt;
+		}
+
+		if (!isFire && time1 > 2.f && dir == 0) {
+			// Задаем начальную и конечную позиции
+			sf::Vector2f startPosition = n_legs.getPosition();
+			sf::Vector2f targetPosition = newPointPosition;
+
+			// Задаем скорость перемещения (здесь можно настроить подходящее значение)
+			float moveSpeed = 100.0f; // пикселей в секунду
+
+			// Вычисляем вектор направления и длину перемещения
+			sf::Vector2f direction = targetPosition - startPosition;
+			float distance = std::sqrt(direction.x * direction.x + direction.y * direction.y);
+
+			// Нормализуем вектор направления
+			if (distance > 0.0f) {
+				direction /= distance;
+			}
+
+			// Вычисляем скорость перемещения на каждом кадре
+			float moveDistance = moveSpeed * dt;
+
+			// Проверяем, достигнута ли конечная позиция
+			if (distance <= moveDistance) {
+				// Если расстояние меньше или равно расстоянию, которое можно пройти за один кадр, перемещаемся в конечную позицию
+				n_legs.setPosition(targetPosition);
+				dir++;
+			}
+			else {
+				// Иначе перемещаемся вдоль вектора направления на расстояние, соответствующее скорости перемещения на текущем кадре
+				sf::Vector2f displacement = direction * moveDistance;
+				n_legs.setPosition(startPosition + displacement);
+			}
+
+			// Вычисляем угол между текущим направлением объекта и вектором, указывающим на конечную позицию
+			float angle = std::atan2(targetPosition.y - startPosition.y, targetPosition.x - startPosition.x) * 180 / M_PI;
+
+			// Поворачиваем объект на вычисленный угол
+			n_body.setRotation(angle);
+		}
+
+		if (!isFire && dir == 1 && time1 > 2.f) {
+			if (numerator > 0) {
+				n_body.setRotation(n_body.getRotation() + 1);
+			}
+			if (numerator <= 0) {
+				n_body.setRotation(n_body.getRotation() - 1);
+			}
+			numerator--;
+			if (numerator == -50) {
+				dir++;
 			}
 		}
 
-		if (!isColliding) {
-			enemyPosition = newEnemyPosition;
-			dir = 2;
-			if (dir == 3) dir = 0;
-		}
-		else{
-			enemyPosition = newEnemyPosition;
-			dir--;
-			if (dir == -1) dir = 2;
+		if (!isFire && dir == 2) {
+			
 		}
 
-		float rotation = n_body.getRotation(); // Получение угла поворота
-		float angleInRadians = rotation * static_cast<float>(M_PI) / 180.0f; // Преобразование угла в радианы
-
-		// Вычисление компонентов вектора направления
-		float directionX = std::cos(angleInRadians);
-		float directionY = std::sin(angleInRadians);
-
-		switch (dir)
-		{
-		case 0:
-		{
-			sf::Vector2f forwardDirection(-enemyDirection.y, enemyDirection.x);
-			enemyDirection = forwardDirection;
-			break;
-		}
-		break;
-		case 1:
-		{
-			sf::Vector2f forwardDirection(enemyDirection.y, -enemyDirection.x);
-			enemyDirection = forwardDirection;
-			break;
-		}
-		break;
-		case 2:
-		{
-			sf::Vector2f forwardDirection(directionX, directionY); // Создание вектора направления
-			enemyDirection = forwardDirection;
-			break;
-		}
-		break;
-		}
-
-		n_legs.setPosition(enemyPosition);
-		//cout << enemyPosition.x << " " << enemyPosition.y << endl;
-		cout << dir << endl;
 		n_body.setPosition(n_legs.getPosition());
 
 		// Стрельба
@@ -341,7 +398,6 @@ public:
 			time = 0;
 			sf::FloatRect bounds = n_sprite.getGlobalBounds(); // Получаем глобальные ограничивающие прямоугольника спрайта
 			sf::Vector2f center(bounds.left + bounds.width / 2, bounds.top + bounds.height / 2); // Вычисляем центр спрайта
-			
 		}
 		time += dt;
 	}
@@ -362,15 +418,22 @@ public:
 	Sprite n_sprite;
 	bool isActive = false; // Это нужно чтобы в один момент он перестал двигаться и напал на игрока
 	bool isFire = false;
+	bool a = false;
+	bool see = false;
+	bool onPos = false;
 	bool II_Mode = 1;
-	
-	int dir = 2;
+	int dir = 0;
 	float n_speed; // Скорость
 	float cd;
 	float time = 0;
+	float time1 = 0;
+	float numerator = 50;
 	float enemySpeed = 100.0f; // Скорость врага
 	float enemyHeight;
 	float enemyWidth;
 	sf::Vector2f enemyPosition; // Позиция врага
+	sf::Vector2f startPosition; // Позиция врага
+	sf::Vector2f newPointPosition = Vector2f(0,0);
 	sf::Vector2f enemyDirection; // Направление движения врага
+	list<Vector2f> listPoints;
 };
