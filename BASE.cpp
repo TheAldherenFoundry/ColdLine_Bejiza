@@ -92,15 +92,19 @@ int main()
 
     TEXTURES_MODULE hi;
 
-    for(int a = 0;a <= 320;a = a + 32)world->addWall(Vector2f(0, a), hi.GetWallTexture(1));
-    for (int a = 32; a <= 320; a = a + 32)world->addWall(Vector2f(a, 0), hi.GetWallTexture(1));
+    for (int a = 0; a < 320; a = a + 32)world->addWall(Vector2f(a, 0), hi.GetWallTexture(1));
+    for (int a = 0; a < 128; a = a + 32)world->addWall(Vector2f(a, 288), hi.GetWallTexture(1));
+    for (int a = 192; a < 320; a = a + 32)world->addWall(Vector2f(a, 288), hi.GetWallTexture(1));
+    for (int a = 32; a < 288; a = a + 32)world->addWall(Vector2f(0, a), hi.GetWallTexture(1));
+    for (int a = 32; a < 288; a = a + 32)world->addWall(Vector2f(288, a), hi.GetWallTexture(1));
+    
     world->addOMD(Vector2f(100, 0), hi.GetWallTexture(1));
-    world->add_Enemy(Vector2f(400, 500), 50, 50, Color::Green, 0, hi.GetWeaponTexture(1), 0.3f);
+    world->add_Enemy(Vector2f(400, 500), 50, 50, Color::Blue, 0, hi.GetWeaponTexture(1), 0.3f);
     
     world->SetGlobalObjectBounds();
 
     world->add_Revolver_basic(hi.GetWeaponTexture(1), false, Vector2f(400,400));
-    world->add_MiniGun(hi.GetWeaponTexture(1), false, Vector2f(200, 200));
+    world->add_MiniGun(hi.GetWeaponTexture(1), true, Vector2f(200, 200));
     while (window.isOpen())
     {
         Time dt = deltaClock.restart();                          // Кол-во времени между кадрами

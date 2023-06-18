@@ -186,7 +186,7 @@ public:
 		n_legs.setSize(Vector2f(size, size));
 		n_legs.setOrigin(size / 2, size / 2);
 		n_legs.setPosition(position);
-		n_legs.setFillColor(Color::Magenta);
+		n_legs.setFillColor(Color::Yellow);
 
 		n_body.setSize(Vector2f(size / 1.5, size / 1.5));
 		n_body.setOrigin(size / 3, size / 3);
@@ -207,7 +207,7 @@ public:
 	void Update(float& deltaTime, RenderWindow& window, vector<FloatRect>& Object, Player& player) {
 		if (!isActive) n_body.setRotation(n_body.getRotation() + 10 * deltaTime);
 		else playerAttack(deltaTime, Object, player);
-		Raycasts(Object, window, player);
+		if(II_Mode)Raycasts(Object, window, player);
 		draw(window);
 	}
 
@@ -362,6 +362,8 @@ public:
 	Sprite n_sprite;
 	bool isActive = false; // Это нужно чтобы в один момент он перестал двигаться и напал на игрока
 	bool isFire = false;
+	bool II_Mode = 1;
+	
 	int dir = 2;
 	float n_speed; // Скорость
 	float cd;

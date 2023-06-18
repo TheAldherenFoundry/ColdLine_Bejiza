@@ -18,20 +18,32 @@ using namespace std;
 class Weapon {
 public:
 	Sprite m_sprite;
+	Clock clock;
+	Clock removalTimer;
+
 	Vector2f StartDropPosition;
 	Vector2f DropPosition;
+
 	bool isTaked;
 	bool a = true;
 	bool doTake = true;
 	bool isKill = false;
 	bool onPosition = true;
+
 	int ammo = 7;
 	int ammoNum = 0;
+
+	float epsilon = 1.0f;
+	float reflectionCooldown = 0.04;
+	float removalCooldown = 0.001;
 	float DropSight = 1.f;
 	float DropSpeed = 800.f;
 	float cooldown = 2.f;
 	float cdFire = 0.3f;
 	float time = 2.f;
+
+	Particle Bullet_Particles;
+
 private:
 	list<Bullet9x18> m_listBullets;
 	Bullet9x18 m_bullet;
@@ -107,21 +119,72 @@ public:
 		for (auto bullet = m_listBullets.begin(); bullet != m_listBullets.end(); ) {
 			bullet->update(dt);
 			bool shouldRemoveBullet = false;
-			for (const auto& enem : m_enemys) {
-				for (const auto& object : Object) {
-					if (bullet->getGlobalBounds().intersects(enem.n_body.getGlobalBounds()) || bullet->getGlobalBounds().intersects(object)) {
-						shouldRemoveBullet = true;
-						break;
+			//for (const auto& enem : m_enemys) {
+			for (const auto& object : Object) {
+				if (bullet->getGlobalBounds().intersects(object)) {
+					// Проверяем шанс отражения
+					if (rand() % 100 <= 10) {
+						// Проверяем задержку отражения
+						if (clock.getElapsedTime().asSeconds() >= reflectionCooldown) {
+							if (bullet->getPosition().y <= object.top + epsilon || bullet->getPosition().y >= object.top + object.height - epsilon) {
+								// Пуля прошла через верхнюю или нижнюю границу стены
+								float reflectionAngle = 2 * 90 - bullet->GetRotation() + rand() % 61 - 30;
+								bullet->SetRotation(reflectionAngle);
+								bullet->Bullet_Speed = bullet->Bullet_Speed / 2;
+								Bullet_Particles.Partickle_HLOPOK(bullet->getPosition(), reflectionAngle);
+								// Остальной код обработки отражения пули...
+							}
+							else {
+								// Пуля столкнулась с боковой границей стены
+								float reflectionAngle = 2 * 0 - bullet->GetRotation() + rand() % 61 - 30;
+								bullet->SetRotation(reflectionAngle);
+								bullet->Bullet_Speed = bullet->Bullet_Speed / 2;
+								Bullet_Particles.Partickle_HLOPOK(bullet->getPosition(), reflectionAngle);
+								// Остальной код обработки отражения пули...
+							}
+
+							// Сбрасываем таймер задержки
+							clock.restart();
+						}
 					}
+					else {
+						shouldRemoveBullet = true;
+						if (bullet->getPosition().y <= object.top + epsilon || bullet->getPosition().y >= object.top + object.height - epsilon) {
+							// Пуля прошла через верхнюю или нижнюю границу стены
+							float reflectionAngle = 2 * 90 - bullet->GetRotation();
+							if (rand() % 100 <= 75)Bullet_Particles.Partickle_HLOPOK(bullet->getPosition(), reflectionAngle + rand() % 30);
+							// Остальной код обработки отражения пули...
+						}
+						else {
+							// Пуля столкнулась с боковой границей стены
+							float reflectionAngle = 2 * 0 - bullet->GetRotation();
+							if(rand() % 100 <= 75)Bullet_Particles.Partickle_HLOPOK(bullet->getPosition(), reflectionAngle + rand() % 30);
+							// Остальной код обработки отражения пули...
+						}
+					}
+					
+					break;
 				}
-				if (shouldRemoveBullet) {
-					bullet = m_listBullets.erase(bullet);
-				}
-				else {
-					++bullet;
-				}
+			
 			}
+		
+
+			if (shouldRemoveBullet && removalTimer.getElapsedTime().asSeconds() >= removalCooldown) {
+				bullet = m_listBullets.erase(bullet);
+			}
+			else {
+				++bullet;
+			}
+			//}
 		}
+		for (const auto& object : Object) {
+		Bullet_Particles.UpdateParticles(dt, object);
+		}
+		// Сбрасываем таймер удаления пули
+		if (removalTimer.getElapsedTime().asSeconds() >= removalCooldown) {
+			removalTimer.restart();
+		}
+
 		draw(window);
 	}
 
@@ -130,6 +193,7 @@ public:
 			bullet.draw(window);
 		}
 		window.draw(m_sprite);
+		Bullet_Particles.DrawParticles(window);
 	}
 
 	void update(float& dt, RenderWindow& window) {

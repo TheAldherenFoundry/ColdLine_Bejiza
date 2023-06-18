@@ -135,20 +135,23 @@ protected:
 	std::string type;
 	Clock m_bulletTimer;
 
-	float Bullet_Speed = 3500;
+	
 	float Npower;
 	float BulletRotate;
 
 	Vector2f m_direction; // Направление движения пули
 
 	bool ShouldDelete;
+public:
+
+	float Bullet_Speed = 1500;
 };
 
 class Bullet9x18 : public Bullet {
 public:
-	Bullet9x18() : Bullet("9x18mm", "AP", 3250.f, 25) {
+	Bullet9x18() : Bullet("9x18mm", "AP", 3250.f, 15) {
 		// Инициализируем свойства пули калибра 9x18
-		m_bullet.setFillColor(Color::Red);
-		m_bullet.setSize(Vector2f(7.f, 12.f));
+		m_bullet.setFillColor(Color(255, 165, 0));
+		m_bullet.setSize(Vector2f(4.5f, 6.5f));
 	}
 };

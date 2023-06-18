@@ -55,7 +55,7 @@ private:
         return particleBounds.intersects(wallBounds);
     }
 public:
-    void Partickle_HLOPOK(Vector2f position, float reflectAngle, Vector2f wallCenter)
+    void Partickle_HLOPOK(Vector2f position, float reflectAngle)
 {
     int numParticles = m_minPractlk + static_cast<int>(std::rand()) / (static_cast<float>(RAND_MAX) / (m_maxPractlk - m_minPractlk));
     for (int i = 0; i < numParticles; ++i)
@@ -76,22 +76,6 @@ public:
         sf::Vector2f velocity(std::cos(radian), std::sin(radian));
         velocity *= velocityMagnitude;
 
-        // Определяем точку, за которой находится стена (задняя сторона стены)
-        sf::Vector2f wallBackPosition = wallCenter - velocity;
-
-        // Проверяем, находится ли точка за стеной
-        if (isBehindWall(position, wallCenter, wallBackPosition))
-        {
-            // Отражаем вектор скорости от стены
-            velocity = reflectVector(velocity, wallCenter - wallBackPosition);
-
-            // Проверяем случайный шанс 30% для удаления частицы
-            if (std::rand() / static_cast<float>(RAND_MAX) <= 0.3f)
-            {
-                continue; // Пропускаем создание частицы
-            }
-        }
-
         // Добавляем частицу и ее параметры в соответствующие списки
         m_particles.push_back(new sf::RectangleShape(std::move(particle)));
         m_particleVelocities.push_back(velocity);
@@ -102,7 +86,64 @@ public:
     }
 }
 
-    
+    //Обновление частиц
+    void UpdateParticles(float deltaTime, const sf::FloatRect& object)
+    {
+        sf::FloatRect bounds; // Границы стены
+
+        for (int i = static_cast<int>(m_particles.size()) - 1; i >= 0; --i)
+        {
+            float alpha = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX); // Генерируем случайное значение прозрачности
+
+            m_particles[i]->setFillColor(sf::Color(255, 255, 255, static_cast<sf::Uint8>(255 * alpha))); // Применяем прозрачность к цвету
+
+            // Обновляем положение частицы на основе скорости
+            m_particles[i]->move(m_particleVelocities[i] * deltaTime);
+
+            float angle = std::atan2(m_particleVelocities[i].y, m_particleVelocities[i].x) * 180.f / 3.14159f;
+            m_particles[i]->setRotation(angle);
+
+            // Уменьшаем время жизни частицы
+            m_particleLifetimes[i] -= deltaTime;
+
+            // Если время жизни частицы истекло, удаляем ее
+            if (m_particleLifetimes[i] <= 0)
+            {
+                m_particles.erase(m_particles.begin() + i);
+                m_particleVelocities.erase(m_particleVelocities.begin() + i);
+                m_particleLifetimes.erase(m_particleLifetimes.begin() + i);
+                continue; // Пропускаем остаток цикла для удаленной частицы
+            }
+
+            if (m_particleLifetimes[i] <= 0.2) {
+                // Проверяем столкновение с объектом
+                sf::FloatRect particleBounds = m_particles[i]->getGlobalBounds();
+                sf::FloatRect objectBounds = object;
+
+                if (particleBounds.intersects(objectBounds))
+                {
+
+                    m_particles.erase(m_particles.begin() + i);
+                    m_particleVelocities.erase(m_particleVelocities.begin() + i);
+                    m_particleLifetimes.erase(m_particleLifetimes.begin() + i);
+
+                    continue; // Пропускаем остаток цикла для удаленной частицы
+                    // Отражаем частицу от объекта
+                    if (m_particleVelocities[i].x > 0 && particleBounds.left + particleBounds.width > objectBounds.left)
+                        m_particleVelocities[i].x *= -1;
+                    else if (m_particleVelocities[i].x < 0 && particleBounds.left < objectBounds.left + objectBounds.width)
+                        m_particleVelocities[i].x *= -1;
+
+                    if (m_particleVelocities[i].y > 0 && particleBounds.top + particleBounds.height > objectBounds.top)
+                        m_particleVelocities[i].y *= -1;
+                    else if (m_particleVelocities[i].y < 0 && particleBounds.top < objectBounds.top + objectBounds.height)
+                        m_particleVelocities[i].y *= -1;
+
+                    break; // Прерываем цикл, чтобы не проверять столкновение с остальными объектами
+                }
+            }
+        }
+    }
     //Обновление частиц
     void UpdateParticles(float deltaTime, const sf::RectangleShape& object)
     {
