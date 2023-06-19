@@ -182,7 +182,7 @@ private:
 class Enemy : public Entity
 {
 public:
-	Enemy(Vector2f position, float size, float speed, Color color, float rotate, Texture& texture, float weapCD) : n_speed(speed) {
+	Enemy(Vector2f position, float size, float speed, Color color, float rotate, Texture& texture, float weapCD, int passiveMod) : n_speed(speed) {
 		n_legs.setSize(Vector2f(size, size));
 		n_legs.setOrigin(size / 2, size / 2);
 		n_legs.setPosition(position);
@@ -196,19 +196,22 @@ public:
 		enemyHeight = size;
 		enemyWidth = size;
 		startPosition = position;
+		startRotate = rotate;
+
+		passiveMode = passiveMod;
 
 		cd = weapCD;
 
 		n_sprite.setTexture(texture);
 		n_sprite.setPosition(Vector2f(10000, 10000));
 
-		n_body.setRotation(rotate);
+		n_body.setRotation(startRotate);
 	}
 
 	void Update(float& deltaTime, RenderWindow& window, vector<FloatRect>& Object, Player& player) {
-		if (!isActive) n_body.setRotation(n_body.getRotation() + 10 * deltaTime);
+		if (!isActive) passive(deltaTime);
 		else playerAttack(deltaTime, Object, player);
-		if(II_Mode)Raycasts(Object, window, player);
+		Raycasts(Object, window, player);
 		if (isFire) a = true;
 		if (a) {
 			if (!isFire && newPointPosition.x == 0 && newPointPosition.y == 0) {
@@ -282,7 +285,59 @@ public:
 		return; // Луч достиг предела без столкновения с препятствием
 	}
 
+	void passive(float& dt) {
+		if (!goStartRotate) {
+			if (passiveMode == 0) {
+				n_body.setRotation(startRotate);
+			}
+			if (passiveMode == 1) {
+				if (temp > 0) {
+					n_body.setRotation(n_body.getRotation() + 1);
+					temp--;
+				}
+				if (temp <= 0) {
+					n_body.setRotation(n_body.getRotation() - 1);
+					temp--;
+				}
+				if (temp <= -90) {
+					temp = 90;
+				}
+			}
+			if (passiveMode == 2) {
+				n_body.setRotation(n_body.getRotation() + 1);
+			}
+			n_sprite.setPosition(Vector2f(10000, 10000));
+		}
+		else {
+			float currentRotation = n_body.getRotation();
+			float angleDiff = startRotate - currentRotation;
+
+			// Нормализация угла
+			while (angleDiff > 180.0f)
+				angleDiff -= 360.0f;
+			while (angleDiff < -180.0f)
+				angleDiff += 360.0f;
+
+			// Интерполяция поворота
+			float rotationStep = 100 * dt;
+
+			if (std::abs(angleDiff) <= rotationStep)
+			{
+				n_body.setRotation(startRotate);
+			}
+			else
+			{
+				float rotationDirection = (angleDiff > 0.0f) ? 1.0f : -1.0f;
+				float newRotation = currentRotation + rotationStep * rotationDirection;
+				n_body.setRotation(newRotation);
+			}
+			if (n_body.getRotation() == startRotate) goStartRotate = false;
+		}
+		cout << goStartRotate << endl;
+	}
+
 	void playerAttack(float& dt, vector<FloatRect>& Object, Player& player) {
+		if (see) {
 			float targetAngle = atan2(player.m_body.getPosition().y - n_body.getPosition().y, player.m_body.getPosition().x - n_body.getPosition().x);
 
 			// Переводим углы в градусы
@@ -322,7 +377,6 @@ public:
 				// Устанавливаем новый угол поворота объекта
 				n_body.setRotation(currentAngle);
 			}
-		if (see) {
 			time1 = 0;
 		}
 		else {
@@ -334,14 +388,14 @@ public:
 
 		if (!isFire && time1 > 2.f && dir == 0) {
 			// Задаем начальную и конечную позиции
-			sf::Vector2f startPosition = n_legs.getPosition();
+			sf::Vector2f startPositio = n_legs.getPosition();
 			sf::Vector2f targetPosition = newPointPosition;
 
 			// Задаем скорость перемещения (здесь можно настроить подходящее значение)
 			float moveSpeed = 100.0f; // пикселей в секунду
 
 			// Вычисляем вектор направления и длину перемещения
-			sf::Vector2f direction = targetPosition - startPosition;
+			sf::Vector2f direction = targetPosition - startPositio;
 			float distance = std::sqrt(direction.x * direction.x + direction.y * direction.y);
 
 			// Нормализуем вектор направления
@@ -361,7 +415,7 @@ public:
 			else {
 				// Иначе перемещаемся вдоль вектора направления на расстояние, соответствующее скорости перемещения на текущем кадре
 				sf::Vector2f displacement = direction * moveDistance;
-				n_legs.setPosition(startPosition + displacement);
+				n_legs.setPosition(startPositio + displacement);
 			}
 
 			// Вычисляем угол между текущим направлением объекта и вектором, указывающим на конечную позицию
@@ -374,18 +428,101 @@ public:
 		if (!isFire && dir == 1 && time1 > 2.f) {
 			if (numerator > 0) {
 				n_body.setRotation(n_body.getRotation() + 1);
+				if (numOff) {
+					dir++;
+				}
 			}
 			if (numerator <= 0) {
 				n_body.setRotation(n_body.getRotation() - 1);
 			}
 			numerator--;
-			if (numerator == -50) {
-				dir++;
+			if (numerator == -60) {
+				numerator = 60;
+				numOff = true;
 			}
 		}
 
 		if (!isFire && dir == 2) {
-			
+			float targetAngle = atan2(startPosition.y - n_body.getPosition().y, startPosition.x - n_body.getPosition().x);
+
+			// Переводим углы в градусы
+			float currentAngle = n_body.getRotation();
+			float targetAngleDegrees = targetAngle * 180 / M_PI;
+
+			// Вычисляем разницу между текущим и целевым углом поворота
+			float angleDiff = targetAngleDegrees - currentAngle;
+
+			// Нормализуем разницу углов в диапазон от -180 до 180 градусов
+			if (angleDiff > 180) {
+				angleDiff -= 360;
+			}
+			else if (angleDiff < -180) {
+				angleDiff += 360;
+			}
+
+			// Определяем скорость поворота (здесь можно настроить подходящее значение)
+			float rotationSpeed = 90.0f;
+
+			// Интерполируем угол поворота плавно с помощью скорости
+			float rotationStep = rotationSpeed * dt; // deltaTime - время между кадрами
+
+			if (abs(angleDiff) <= rotationStep) {
+				// Если разница углов меньше шага поворота, просто устанавливаем целевой угол
+				n_body.setRotation(targetAngleDegrees);
+			}
+			else {
+				// В противном случае, изменяем текущий угол на шаг поворота
+				if (angleDiff > 0) {
+					currentAngle += rotationStep;
+				}
+				else {
+					currentAngle -= rotationStep;
+				}
+
+				// Устанавливаем новый угол поворота объекта
+				n_body.setRotation(currentAngle);
+			}
+
+			// Задаем начальную и конечную позиции
+			sf::Vector2f startPositio = n_legs.getPosition();
+			sf::Vector2f targetPosition = startPosition;
+
+			// Задаем скорость перемещения (здесь можно настроить подходящее значение)
+			float moveSpeed = 100.0f; // пикселей в секунду
+
+			// Вычисляем вектор направления и длину перемещения
+			sf::Vector2f direction = targetPosition - startPositio;
+			float distance = std::sqrt(direction.x * direction.x + direction.y * direction.y);
+
+			// Нормализуем вектор направления
+			if (distance > 0.0f) {
+				direction /= distance;
+			}
+
+			// Вычисляем скорость перемещения на каждом кадре
+			float moveDistance = moveSpeed * dt;
+
+			// Проверяем, достигнута ли конечная позиция
+			if (distance <= moveDistance) {
+				// Если расстояние меньше или равно расстоянию, которое можно пройти за один кадр, перемещаемся в конечную позицию
+				n_legs.setPosition(targetPosition);
+				dir++;
+			}
+			else {
+				// Иначе перемещаемся вдоль вектора направления на расстояние, соответствующее скорости перемещения на текущем кадре
+				sf::Vector2f displacement = direction * moveDistance;
+				n_legs.setPosition(startPositio + displacement);
+			}
+		}
+
+		if (!isFire && dir == 3) {
+			isActive = false;
+			temp = 45;
+			dir = 0;
+			numOff = false;
+			numerator = 60;
+			goStartRotate = true;
+			newPointPosition = Vector2f(0,0);
 		}
 
 		n_body.setPosition(n_legs.getPosition());
@@ -421,16 +558,21 @@ public:
 	bool a = false;
 	bool see = false;
 	bool onPos = false;
+	bool numOff = false;
 	bool II_Mode = 1;
+	bool goStartRotate = false;
 	int dir = 0;
+	int passiveMode;
+	int temp = 45;
 	float n_speed; // Скорость
 	float cd;
 	float time = 0;
 	float time1 = 0;
-	float numerator = 50;
+	float numerator = 60;
 	float enemySpeed = 100.0f; // Скорость врага
 	float enemyHeight;
 	float enemyWidth;
+	float startRotate;
 	sf::Vector2f enemyPosition; // Позиция врага
 	sf::Vector2f startPosition; // Позиция врага
 	sf::Vector2f newPointPosition = Vector2f(0,0);

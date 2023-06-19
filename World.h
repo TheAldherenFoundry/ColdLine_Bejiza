@@ -346,9 +346,9 @@ public:
         m_MiniGun.emplace_back(texture, isTaked, position);
     }
 
-    void add_Enemy(Vector2f position, float size, float speed, Color color, float rotate, Texture& texture, float weapCD)
+    void add_Enemy(Vector2f position, float size, float speed, Color color, float rotate, Texture& texture, float weapCD, int passiveMod)
     {
-        m_enemys.emplace_back(position, size, speed, color, rotate, texture, weapCD);
+        m_enemys.emplace_back(position, size, speed, color, rotate, texture, weapCD, passiveMod);
     }
 
     void addOMD(Vector2f position, Texture& texture)
