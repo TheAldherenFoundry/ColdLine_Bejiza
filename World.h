@@ -1,7 +1,7 @@
+#pragma once
 #include <iostream>
 #include <SFML/Graphics.hpp>
 #include <cmath>
-#include "Entity.h"
 #include "Weapon.h"
 
 using namespace sf;
@@ -264,8 +264,8 @@ public:
     bool CREATIVE_MODE = 0;
 
     // Тут мы кучерявим оружие
+    vector<MiniCunn> m_MiniGun;
     vector<Revolver_basic> m_Revolver_basic;
-    vector<MiniGun> m_MiniGun;
     // Тут мы кучерявим объекты мира
     vector<Wall> m_walls;
     vector<Door> m_doora;
@@ -410,12 +410,6 @@ public:
         }
         for (auto& door : m_doora) {
             door.update(window);
-        }
-        for (auto& makarov : m_Revolver_basic) {
-            makarov.update(dt, window);
-        }
-        for (auto& makarov : m_MiniGun) {
-            makarov.update(dt, window);
         }
         if (!CREATIVE_MODE) {
             WeaponCONTROL();

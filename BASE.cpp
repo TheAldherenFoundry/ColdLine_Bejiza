@@ -101,12 +101,12 @@ int main()
     for (int a = 32; a < 288; a = a + 32)world->addWall(Vector2f(288, a), hi.GetWallTexture(1));
     
     world->addOMD(Vector2f(100, 0), hi.GetWallTexture(1));
-    world->add_Enemy(Vector2f(400, 500), 50, 50, Color::Blue, 0, hi.GetWeaponTexture(1), 0.3f, 1, 3);
+    world->add_Enemy(Vector2f(400, 500), 50, 50, Color::Blue, 0, hi.GetWeaponTexture(1), 0.3f, 1,100);
     
     world->SetGlobalObjectBounds();
 
     world->add_Revolver_basic(hi.GetWeaponTexture(1), false, Vector2f(400,400));
-    world->add_MiniGun(hi.GetWeaponTexture(1), true, Vector2f(200, 200));
+    world->add_MiniGun(hi.GetWeaponTexture(2), true, Vector2f(200, 200));
     while (window.isOpen())
     {
         Time dt = deltaClock.restart();                          // Кол-во времени между кадрами
