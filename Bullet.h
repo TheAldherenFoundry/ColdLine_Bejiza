@@ -149,9 +149,9 @@ public:
 
 class Bullet9x18 : public Bullet {
 public:
-	Bullet9x18() : Bullet("9x18mm", "AP", 3250.f, 15) {
+	Bullet9x18() : Bullet("9x18mm", "AP", 1050.f, 15) {
 		// Инициализируем свойства пули калибра 9x18
-		m_bullet.setFillColor(Color(255, 165, 0));
-		m_bullet.setSize(Vector2f(4.5f, 6.5f));
+		m_bullet.setFillColor(Color(255, 65, 0));
+		m_bullet.setSize(Vector2f(1.5f, 3.5f));
 	}
 };

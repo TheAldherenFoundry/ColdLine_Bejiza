@@ -77,6 +77,8 @@ int main()
     window.setMouseCursorVisible(false);
     window.setMouseCursorGrabbed(true);
 
+    window.setFramerateLimit(120);
+
     bool DEBUG_INFO = 0;
 
     RectangleShape a(Vector2f(1000, 1000));

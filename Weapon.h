@@ -34,7 +34,7 @@ public:
 	int ammoNum = 0;
 
 	float epsilon = 1.0f;
-	float reflectionCooldown = 0.04;
+	float reflectionCooldown = 0.0001;
 	float removalCooldown = 0.001;
 	float DropSight = 1.f;
 	float DropSpeed = 800.f;
@@ -74,7 +74,7 @@ public:
 				ammoNum++;
 				cooldown = 0;
 				sf::FloatRect bounds = m_sprite.getGlobalBounds(); // Получаем глобальные ограничивающие прямоугольника спрайта
-				sf::Vector2f center(bounds.left + bounds.width / 2, bounds.top + bounds.height / 2); // Вычисляем центр спрайта
+				sf::Vector2f center(bounds.left + 3 + bounds.width/ 2,bounds.top + 3 + bounds.height / 2); // Вычисляем центр спрайта
 				m_bullet.setPosition(center);
 				m_bullet.SetRotation(m_sprite.getRotation() + 90);
 				m_listBullets.push_back(m_bullet);
@@ -122,6 +122,7 @@ public:
 			//for (const auto& enem : m_enemys) {
 			for (const auto& object : Object) {
 				if (bullet->getGlobalBounds().intersects(object)) {
+					cout << "YES MAGNETS!" << endl;
 					// Проверяем шанс отражения
 					if (rand() % 100 <= 10) {
 						// Проверяем задержку отражения

@@ -227,9 +227,9 @@ public:
 	}
 
 	void Raycasts(vector<FloatRect>& Object, RenderWindow& window, Player& player) {
-		VertexArray line[45];
-		int maxLine = 45;
-		int angle = 180;
+		VertexArray line[10];
+		int maxLine = 10;
+		int angle = 120;
 
 		isFire = false;
 		see = false;
