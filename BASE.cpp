@@ -101,7 +101,7 @@ int main()
     for (int a = 32; a < 288; a = a + 32)world->addWall(Vector2f(288, a), hi.GetWallTexture(1));
     
     world->addOMD(Vector2f(100, 0), hi.GetWallTexture(1));
-    world->add_Enemy(Vector2f(400, 500), 50, 50, Color::Blue, 0, hi.GetWeaponTexture(1), 0.3f, 1);
+    world->add_Enemy(Vector2f(400, 500), 50, 50, Color::Blue, 0, hi.GetWeaponTexture(1), 0.3f, 1, 3);
     
     world->SetGlobalObjectBounds();
 

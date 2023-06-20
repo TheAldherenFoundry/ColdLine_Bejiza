@@ -182,7 +182,7 @@ private:
 class Enemy : public Entity
 {
 public:
-	Enemy(Vector2f position, float size, float speed, Color color, float rotate, Texture& texture, float weapCD, int passiveMod) : n_speed(speed) {
+	Enemy(Vector2f position, float size, float speed, Color color, float rotate, Texture& texture, float weapCD, int passiveMod, int hp_) : n_speed(speed) {
 		n_legs.setSize(Vector2f(size, size));
 		n_legs.setOrigin(size / 2, size / 2);
 		n_legs.setPosition(position);
@@ -193,10 +193,14 @@ public:
 		n_body.setPosition(position);
 		n_body.setFillColor(color);
 
+		circle.setRadius(500.f);
+		circle.setFillColor(sf::Color::Red);
+
 		enemyHeight = size;
 		enemyWidth = size;
 		startPosition = position;
 		startRotate = rotate;
+		hp = hp_;
 
 		passiveMode = passiveMod;
 
@@ -209,17 +213,28 @@ public:
 	}
 
 	void Update(float& deltaTime, RenderWindow& window, vector<FloatRect>& Object, Player& player) {
-		if (!isActive) passive(deltaTime);
-		else playerAttack(deltaTime, Object, player);
-		Raycasts(Object, window, player);
-		if (isFire) a = true;
-		if (a) {
-			if (!isFire && newPointPosition.x == 0 && newPointPosition.y == 0) {
-				newPointPosition = player.m_body.getPosition();
+		if (hp <= 0) isAlive = false;
+		if (isAlive) {
+		float circleX = (n_legs.getSize().x - circle.getRadius()) / 2.f + n_legs.getPosition().x;
+		float circleY = (n_legs.getSize().y - circle.getRadius()) / 2.f + n_legs.getPosition().y;
+		circle.setPosition(circleX - 250 , circleY - 250);
+			if (!isActive) passive(deltaTime);
+			else playerAttack(deltaTime, Object, player);
+			Raycasts(Object, window, player);
+			if (circle.getGlobalBounds().intersects(player.m_legs.getGlobalBounds()) && Mouse::isButtonPressed(Mouse::Left) && isActive == false) {
+				isActive = true;
+				newPointPosition = player.m_legs.getPosition();
+				time = 2.f;
 			}
+			if (isFire) a = true;
+			if (a) {
+				if (!isFire && newPointPosition.x == 0 && newPointPosition.y == 0) {
+					newPointPosition = player.m_body.getPosition();
+				}
+			}
+			if (!isFire) a = false;
+			draw(window);
 		}
-		if (!isFire) a = false;
-		draw(window);
 	}
 
 	void Update(float& deltaTime, RenderWindow& window, vector<FloatRect>& Object) {
@@ -227,9 +242,9 @@ public:
 	}
 
 	void Raycasts(vector<FloatRect>& Object, RenderWindow& window, Player& player) {
-		VertexArray line[10];
-		int maxLine = 10;
-		int angle = 120;
+		VertexArray line[20];
+		int maxLine = 20;
+		int angle = 100;
 
 		isFire = false;
 		see = false;
@@ -333,7 +348,6 @@ public:
 			}
 			if (n_body.getRotation() == startRotate) goStartRotate = false;
 		}
-		cout << goStartRotate << endl;
 	}
 
 	void playerAttack(float& dt, vector<FloatRect>& Object, Player& player) {
@@ -380,9 +394,6 @@ public:
 			time1 = 0;
 		}
 		else {
-			if (time1 > 2.f) {
-
-			}
 			time1 += dt;
 		}
 
@@ -552,9 +563,11 @@ public:
 public:
 	RectangleShape n_legs; // Ноги
 	RectangleShape n_body; // Тело
+	sf::CircleShape circle;
 	Sprite n_sprite;
 	bool isActive = false; // Это нужно чтобы в один момент он перестал двигаться и напал на игрока
 	bool isFire = false;
+	bool isAlive = true;
 	bool a = false;
 	bool see = false;
 	bool onPos = false;
@@ -564,6 +577,7 @@ public:
 	int dir = 0;
 	int passiveMode;
 	int temp = 45;
+	int hp = 3;
 	float n_speed; // Скорость
 	float cd;
 	float time = 0;
