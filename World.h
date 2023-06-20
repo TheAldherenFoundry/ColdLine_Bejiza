@@ -1,8 +1,8 @@
 #include <iostream>
 #include <SFML/Graphics.hpp>
 #include <cmath>
-#include "Weapon.h"
 #include "Entity.h"
+#include "Weapon.h"
 
 using namespace sf;
 using namespace std;
@@ -85,7 +85,6 @@ struct TextureGrid
         }
     }
 };
-
 // Да это круто, вопросы?
 struct TrailSegment {
     sf::Vector2f position;  // Позиция сегмента следа

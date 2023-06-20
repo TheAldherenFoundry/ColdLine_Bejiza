@@ -33,6 +33,7 @@ Texture Bullet_9x18;
 
 /// ТЕКСТУРЫ ОРУЖИЯ
 Texture REVOLVER_BASIC;
+Texture MiniGun;
 
 // Тестуры остального
 Texture OMD_1;
@@ -71,9 +72,13 @@ struct TEXTURES_MODULE
 
 		Bullet_9x18.loadFromFile("image/Particles/Bullet.png");
 
-		REVOLVER_BASIC.loadFromFile("image/Revolver.png");
+		REVOLVER_BASIC.loadFromFile("image/Weapon/Revolver/Revolver.png");
+
+		MiniGun.loadFromFile("image/Weapon/MiniGun/MiniGun.png");
 
 		Textures_Weapon.push_back(REVOLVER_BASIC);
+
+		Textures_Weapon.push_back(MiniGun);
 
 		OMD_1.loadFromFile("image/Mebelgrad/Divan_1.png");
 		OMD_2.loadFromFile("image/Mebelgrad/Divan_2.png");
@@ -118,10 +123,18 @@ struct TEXTURES_MODULE
 		return textures[randomIndex];
 	}
 
-	// 1 - Револьвер....
+	// 1 - Револьвер, 2 - Миниган
 	Texture& GetWeaponTexture(int x)
 	{
-		return REVOLVER_BASIC;
+		switch (x)
+		{
+		case 1:
+			return REVOLVER_BASIC;
+			break;
+		case 2:
+			return MiniGun;
+			break;
+		}
 	}
 
 	// 1 - Red, 2 - Red_Uzel, 3 - White, 4 - White_Uzel
