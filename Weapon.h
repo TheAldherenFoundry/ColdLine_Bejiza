@@ -29,6 +29,7 @@ public:
 	bool doTake = true;
 	bool isKill = false;
 	bool onPosition = true;
+	bool oneKill = false;
 
 	int ammo = 7;
 	int ammoNum = 0;
@@ -50,6 +51,7 @@ private:
 
 public:
 	void update(float& dt, Player& player, RenderWindow& window, vector<FloatRect>& Object, vector<Enemy>& m_enemys) {
+		oneKill = false;
 		cooldown += dt;
 		time += dt;
 		if (!isTaked && onPosition == true) m_sprite.setPosition(DropPosition); // Позиция лежания/выкидываения
@@ -119,12 +121,12 @@ public:
 		for (auto bullet = m_listBullets.begin(); bullet != m_listBullets.end(); ) {
 			bullet->update(dt);
 			bool shouldRemoveBullet = false;
-			//for (const auto& enem : m_enemys) {
 			for (const auto& object : Object) {
 				if (bullet->getGlobalBounds().intersects(object)) {
 					cout << "YES MAGNETS!" << endl;
 					// Проверяем шанс отражения
 					if (rand() % 100 <= 10) {
+						oneKill = true;
 						// Проверяем задержку отражения
 						if (clock.getElapsedTime().asSeconds() >= reflectionCooldown) {
 							if (bullet->getPosition().y <= object.top + epsilon || bullet->getPosition().y >= object.top + object.height - epsilon) {
@@ -169,6 +171,22 @@ public:
 			
 			}
 		
+			for (auto& enem : m_enemys) {
+				if (bullet->getGlobalBounds().intersects(enem.n_legs.getGlobalBounds())) {
+					if (!oneKill) {
+						enem.hp--;
+						if (enem.isActive == false) {
+							enem.newPointPosition = player.m_legs.getPosition();
+							enem.isActive = true;
+						}
+					}
+					else {
+						enem.hp = 0;
+					}
+					shouldRemoveBullet = true;
+
+				}
+			}
 
 			if (shouldRemoveBullet && removalTimer.getElapsedTime().asSeconds() >= removalCooldown) {
 				bullet = m_listBullets.erase(bullet);
