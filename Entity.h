@@ -84,7 +84,7 @@ public:
 		// Поворот
 		player.playerRotate(deltaTime, window, player);
 		// Камера
-		Kelab.followPlayer(player.m_legs.getPosition(), 0.02);
+		Kelab.followPlayer(player.m_legs.getPosition(), 0.04);
 		Kelab.update(window);
 
 		m_body.setPosition(m_legs.getPosition());
@@ -92,6 +92,26 @@ public:
 		// Используем установленный угол поворота прицела и смещение, чтобы установить его позицию
 		m_aim.setPosition(window.mapPixelToCoords(sf::Mouse::getPosition(window)));
 
+		player.draw(window);
+	}
+
+	void update(float& deltaTime, RenderWindow& window, Player& player, bool x)
+	{
+		if (x)
+		{
+			// Передвижение клавиатурой
+			Movement(deltaTime, player);
+			// Поворот
+			player.playerRotate(deltaTime, window, player);
+			// Камера
+			Kelab.followPlayer(player.m_legs.getPosition(), 0.02);
+			Kelab.update(window);
+
+			m_body.setPosition(m_legs.getPosition());
+
+			// Используем установленный угол поворота прицела и смещение, чтобы установить его позицию
+			m_aim.setPosition(window.mapPixelToCoords(sf::Mouse::getPosition(window)));
+		}
 		player.draw(window);
 	}
 
@@ -242,8 +262,8 @@ public:
 	}
 
 	void Raycasts(vector<FloatRect>& Object, RenderWindow& window, Player& player) {
-		VertexArray line[20];
-		int maxLine = 20;
+		VertexArray line[4];
+		int maxLine = 4;
 		int angle = 100;
 
 		isFire = false;

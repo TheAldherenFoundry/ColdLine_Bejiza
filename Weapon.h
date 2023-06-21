@@ -172,6 +172,7 @@ public:
 		
 			for (auto& enem : m_enemys) {
 				if (bullet->getGlobalBounds().intersects(enem.n_legs.getGlobalBounds())) {
+					Bullet_Particles.CreateBloodParticles(enem.n_legs.getPosition(), bullet->GetRotation() - 90, 10, 50, 255.0, 0.5f);
 					if (!oneKill) {
 						enem.hp--;
 						if (enem.isActive == false) {
@@ -245,6 +246,8 @@ class  MiniCunn : public Weapon
 {
 private:
 
+	bool GunDolo = 0;
+
 	list<Bullet9x18> m_listBullets;
 	Bullet9x18 m_bullet;
 
@@ -281,23 +284,26 @@ public:
 				a = true;
 			}
 			// Внутри вашего игрового цикла или функции обновления
-			if (Mouse::isButtonPressed(Mouse::Left) && ammoNum < ammo && cooldown > cdFire) {
+			if ((Mouse::isButtonPressed(Mouse::Left) && ammoNum < ammo && cooldown > cdFire)) {
 				ammoNum++;
 				cooldown = 0;
 
-				sf::FloatRect bounds1 = m_sprite.getGlobalBounds(); // Получаем глобальные ограничивающие прямоугольника первого дула
-				sf::Vector2f center1(bounds1.left + 5 + bounds1.width / 2, bounds1.top + 5 + bounds1.height / 2);
-				m_bullet.setPosition(center1);
-				m_bullet.SetRotation(m_sprite.getRotation() + 90);
-				m_listBullets.push_back(m_bullet);
+				sf::Vector2f center;
 
-				sf::FloatRect bounds2 = m_sprite.getGlobalBounds(); // Получаем глобальные ограничивающие прямоугольника второго дула
-				sf::Vector2f center2(bounds2.left - 6 + bounds2.width / 2, bounds2.top - 5 + bounds2.height / 2);
-				m_bullet.setPosition(center2);
+				if (!GunDolo) {
+					center = sf::Vector2f(m_sprite.getGlobalBounds().left + 4 + m_sprite.getGlobalBounds().width / 2, m_sprite.getGlobalBounds().top + 4 + m_sprite.getGlobalBounds().height / 2);
+					GunDolo = true;
+				}
+				else {
+					center = sf::Vector2f(m_sprite.getGlobalBounds().left - 4 + m_sprite.getGlobalBounds().width / 2, m_sprite.getGlobalBounds().top - 4 + m_sprite.getGlobalBounds().height / 2);
+					GunDolo = false;
+				}
+
+				m_bullet.setPosition(center);
 				m_bullet.SetRotation(m_sprite.getRotation() + 90);
 				m_listBullets.push_back(m_bullet);
 			}
-			if (Mouse::isButtonPressed(Mouse::Left) && ammoNum >= ammo && cooldown > cdFire) {
+			if ((Mouse::isButtonPressed(Mouse::Left) && ammoNum >= ammo && cooldown > cdFire)) {
 				player.haveWeapon = false;
 				doTake = false;
 				isTaked = false;
@@ -388,6 +394,7 @@ public:
 
 			for (auto& enem : m_enemys) {
 				if (bullet->getGlobalBounds().intersects(enem.n_legs.getGlobalBounds())) {
+					Bullet_Particles.CreateBloodParticles(enem.n_legs.getPosition(), bullet->GetRotation() - 90, 10, 50, 255.0, 0.5f);
 					if (!oneKill) {
 						enem.hp--;
 						if (enem.isActive == false) {
@@ -414,10 +421,12 @@ public:
 		for (const auto& object : Object) {
 			Bullet_Particles.UpdateParticles(dt, object);
 		}
+		if(Object.size() == 0)Bullet_Particles.UpdateParticles(dt,FloatRect (Vector2f(0,0), Vector2f(0, 0)));
 		// Сбрасываем таймер удаления пули
 		if (removalTimer.getElapsedTime().asSeconds() >= removalCooldown) {
 			removalTimer.restart();
 		}
+
 
 		draw(window);
 	}
@@ -431,7 +440,7 @@ public:
 		ammoNum = 0;
 		DropSight = 0.5f;
 		DropSpeed = 300.f;
-		cdFire = 0.1f;
+		cdFire = 0.3f;
 
 		cooldown = 0.1f;
 	}

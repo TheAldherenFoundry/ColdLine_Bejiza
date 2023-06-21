@@ -30,12 +30,13 @@ public:
         // Вычисляем новую позицию камеры с использованием интерполяции
         sf::Vector2f newPosition = currentPosition + (targetPosition - currentPosition) * smoothness;
 
+
         // Устанавливаем новую позицию камеры
         m_view.setCenter(newPosition);
     }
     void update(sf::RenderWindow & x)
     {
-        m_view.setSize(sf::Vector2f(x.getSize().x / 2, x.getSize().y / 2));
+        m_view.setSize(sf::Vector2f(x.getSize().x / 1.2, x.getSize().y / 1.2));
         x.setView(m_view);
     }
     void applyRecoil(const sf::Vector2f& recoil)

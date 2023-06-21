@@ -27,6 +27,16 @@ Texture P6;
 Texture P7;
 /// ТЕКСТУРЫ ЧАСТИЦ
 
+/// ТЕКСТУРЫ Blood
+Texture B1;
+Texture B2;
+Texture B3;
+Texture B4;
+Texture B5;
+Texture B6;
+Texture B7;
+/// ТЕКСТУРЫ Blood
+
 /// ТЕКСТУРЫ ПУЛИ
 Texture Bullet_9x18;
 /// ТЕКСТУРЫ ПУЛИ
@@ -69,6 +79,14 @@ struct TEXTURES_MODULE
 		P5.loadFromFile("image/Particles/Particle_5.png");
 		P6.loadFromFile("image/Particles/Particle_6.png");
 		P7.loadFromFile("image/Particles/Particle_7.png");
+
+		B1.loadFromFile("image/Particles/Blood/Blood_1.png");
+		B2.loadFromFile("image/Particles/Blood/Blood_2.png");
+		B3.loadFromFile("image/Particles/Blood/Blood_3.png");
+		B4.loadFromFile("image/Particles/Blood/Blood_4.png");
+		B5.loadFromFile("image/Particles/Blood/Blood_5.png");
+		B6.loadFromFile("image/Particles/Blood/Blood_6.png");
+		B7.loadFromFile("image/Particles/Blood/Blood_7.png");
 
 		Bullet_9x18.loadFromFile("image/Particles/Bullet.png");
 
@@ -116,6 +134,17 @@ struct TEXTURES_MODULE
 	{
 		// Массив доступных текстур
 		const sf::Texture* textures[] = { &P1, &P2, &P3, &P4, &P5, &P6, &P7 };
+
+		// Получаем случайный индекс текстуры
+		int randomIndex = rand() % (sizeof(textures) / sizeof(textures[0]));
+		// Возвращаем указатель на случайную текстуру
+		return textures[randomIndex];
+	}
+
+	const sf::Texture* Give_Me_Random_Blood_Texture()
+	{
+		// Массив доступных текстур
+		const sf::Texture* textures[] = { &B1, &B2, &B3, &B4, &B5, &B6, &B7 };
 
 		// Получаем случайный индекс текстуры
 		int randomIndex = rand() % (sizeof(textures) / sizeof(textures[0]));

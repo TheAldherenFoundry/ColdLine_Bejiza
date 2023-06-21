@@ -56,35 +56,64 @@ private:
     }
 public:
     void Partickle_HLOPOK(Vector2f position, float reflectAngle)
-{
-    int numParticles = m_minPractlk + static_cast<int>(std::rand()) / (static_cast<float>(RAND_MAX) / (m_maxPractlk - m_minPractlk));
-    for (int i = 0; i < numParticles; ++i)
     {
-        float velocityMagnitude = (static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX)) * maxSpeed; // —лучайна€ величина скорости
+        int numParticles = m_minPractlk + static_cast<int>(std::rand()) / (static_cast<float>(RAND_MAX) / (m_maxPractlk - m_minPractlk));
+        for (int i = 0; i < numParticles; ++i)
+        {
+            float velocityMagnitude = (static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX)) * maxSpeed; // —лучайна€ величина скорости
 
-        sf::RectangleShape particle; // —оздаем круговую частицу
-        particle.setSize(sf::Vector2f(rand() % 12, rand() % 6));
-        particle.setPosition(position);
-        particle.setTexture(PARTICLE.Give_Me_Random_Praticle_Texture());
+            sf::RectangleShape particle; // —оздаем круговую частицу
+            particle.setSize(sf::Vector2f(rand() % 12, rand() % 6));
+            particle.setPosition(position);
+            particle.setTexture(PARTICLE.Give_Me_Random_Praticle_Texture());
 
-        // √енерируем случайный угол дл€ направлени€ частицы отраженного от пули
-        float deviationAngle = (static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX)) * 60.0f - 30.0f; // ќтклонение от -30 до +30 градусов
-        float angle = reflectAngle + deviationAngle;
-        float radian = angle * 3.14159f / 180.f;
+            // √енерируем случайный угол дл€ направлени€ частицы отраженного от пули
+            float deviationAngle = (static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX)) * 60.0f - 30.0f; // ќтклонение от -30 до +30 градусов
+            float angle = reflectAngle + deviationAngle;
+            float radian = angle * 3.14159f / 180.f;
 
-        // ¬ычисл€ем вектор скорости на основе случайной величины и угла
-        sf::Vector2f velocity(std::cos(radian), std::sin(radian));
-        velocity *= velocityMagnitude;
+            // ¬ычисл€ем вектор скорости на основе случайной величины и угла
+            sf::Vector2f velocity(std::cos(radian), std::sin(radian));
+            velocity *= velocityMagnitude;
 
-        // ƒобавл€ем частицу и ее параметры в соответствующие списки
-        m_particles.push_back(new sf::RectangleShape(std::move(particle)));
-        m_particleVelocities.push_back(velocity);
-        m_particleLifetimes.push_back(particleLifetime);
+            // ƒобавл€ем частицу и ее параметры в соответствующие списки
+            m_particles.push_back(new sf::RectangleShape(std::move(particle)));
+            m_particleVelocities.push_back(velocity);
+            m_particleLifetimes.push_back(particleLifetime);
 
-        float lifetime = m_minLifetime + static_cast<float>(std::rand()) / (static_cast<float>(RAND_MAX) / (m_maxLifetime - m_minLifetime));
-        m_particleLifetimes.push_back(lifetime);
+            float lifetime = m_minLifetime + static_cast<float>(std::rand()) / (static_cast<float>(RAND_MAX) / (m_maxLifetime - m_minLifetime));
+            m_particleLifetimes.push_back(lifetime);
+        }
+
     }
-}
+
+    void CreateBloodParticles(const sf::Vector2f& position, float reflectAngle, int m_minBloodParticles, int m_maxBloodParticles, float maxBloodSpeed, float bloodParticleLifetime)
+    {
+        int numParticles = m_minBloodParticles + static_cast<int>(std::rand()) / (static_cast<float>(RAND_MAX) / (m_maxBloodParticles - m_minBloodParticles));
+        for (int i = 0; i < numParticles; ++i)
+        {
+            float velocityMagnitude = (static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX)) * maxBloodSpeed; // —лучайна€ величина скорости
+
+            sf::RectangleShape particle; // —оздаем круговую частицу
+            particle.setSize(sf::Vector2f(rand() % 12, rand() % 6));
+            particle.setPosition(position);
+            particle.setTexture(PARTICLE.Give_Me_Random_Blood_Texture()); // текстурa дл€ частиц крови
+
+            // √енерируем случайный угол дл€ направлени€ частицы отраженного от пули
+            float deviationAngle = (static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX)) * 60.0f - 30.0f; // ќтклонение от -30 до +30 градусов
+            float angle = reflectAngle + deviationAngle;
+            float radian = angle * 3.14159f / 180.f;
+
+            // ¬ычисл€ем вектор скорости на основе случайной величины и угла
+            sf::Vector2f velocity(std::cos(radian), std::sin(radian));
+            velocity *= velocityMagnitude;
+
+            // ƒобавл€ем частицу и ее параметры в соответствующие списки
+            m_particles.push_back(new sf::RectangleShape(std::move(particle)));
+            m_particleVelocities.push_back(velocity);
+            m_particleLifetimes.push_back(bloodParticleLifetime);
+        }
+    }
 
     //ќбновление частиц
     void UpdateParticles(float deltaTime, const sf::FloatRect& object)

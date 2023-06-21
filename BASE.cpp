@@ -82,31 +82,28 @@ int main()
     bool DEBUG_INFO = 0;
 
     RectangleShape a(Vector2f(1000, 1000));
-    a.setFillColor(Color::Cyan);
 
     Clock deltaClock;
     float deltaTime = 0.f;
 
-    // Создаем игрока
-    Player player(Vector2f(100.f, 100.f), 50.f, 300, Color::Red); // создаем персонажа
-
-    World* world = new World(0);
+    World* world = new World(DEBUG_INFO);
 
     TEXTURES_MODULE hi;
-
-    for (int a = 0; a < 320; a = a + 32)world->addWall(Vector2f(a, 0), hi.GetWallTexture(1));
-    for (int a = 0; a < 128; a = a + 32)world->addWall(Vector2f(a, 288), hi.GetWallTexture(1));
-    for (int a = 192; a < 320; a = a + 32)world->addWall(Vector2f(a, 288), hi.GetWallTexture(1));
-    for (int a = 32; a < 288; a = a + 32)world->addWall(Vector2f(0, a), hi.GetWallTexture(1));
-    for (int a = 32; a < 288; a = a + 32)world->addWall(Vector2f(288, a), hi.GetWallTexture(1));
     
-    world->addOMD(Vector2f(100, 0), hi.GetWallTexture(1));
-    world->add_Enemy(Vector2f(400, 500), 50, 50, Color::Blue, 0, hi.GetWeaponTexture(1), 0.3f, 1,100);
-    
-    world->SetGlobalObjectBounds();
+    if (!DEBUG_INFO) {
+        world->addOMD(Vector2f(100, 0), hi.GetWallTexture(1));
+        world->add_Enemy(Vector2f(400, 500), 50, 50, Color::Blue, 0, hi.GetWeaponTexture(1), 0.3f, 1, 100);
+        world->add_player(Vector2f(100.f, 100.f), 50.f, 300, Color::Red);
+        
+        world->addWall(Vector2f(0, 0), hi.GetWallTexture(1));
 
-    world->add_Revolver_basic(hi.GetWeaponTexture(1), false, Vector2f(400,400));
-    world->add_MiniGun(hi.GetWeaponTexture(2), true, Vector2f(200, 200));
+        world->SetGlobalObjectBounds();
+
+        world->add_Revolver_basic(hi.GetWeaponTexture(1), false, Vector2f(400, 400));
+        world->add_MiniGun(hi.GetWeaponTexture(2), true, Vector2f(200, 200));
+
+
+    }
     while (window.isOpen())
     {
         Time dt = deltaClock.restart();                          // Кол-во времени между кадрами
@@ -122,15 +119,10 @@ int main()
         }
         window.clear(Color::Black);                                                       // Очищаем экран
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        if (!DEBUG_INFO) {
-            player.update(deltaTime, window,player);                                                         // да
+        
             ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            world->update(window, player, deltaTime);                                         // Отрисовка объектов
-            player.draw(window);                                                              // отображаем персонажа на экране
-        }
-        else {
-            window.draw(a);
-        }
+        world->update(window, deltaTime);                                                  // Отрисовка объектов
+        
         window.display();                                                                 // выводим экран на монито
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     }

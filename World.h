@@ -1,8 +1,8 @@
-#pragma once
 #include <iostream>
 #include <SFML/Graphics.hpp>
 #include <cmath>
 #include "Weapon.h"
+#include "Entity.h"
 
 using namespace sf;
 using namespace std;
@@ -45,6 +45,55 @@ public:
 
 };
 
+struct Square
+{
+private:
+    RectangleShape squre;
+    bool Object;
+public:
+    Square(sf::Vector2f x)
+    {
+        squre.setSize(x);
+        Object = 1;
+    }
+    bool GetObjectDopustim()
+    {
+        return Object;
+    }
+    void setGetObjectDopustim()
+    {
+        Object = 0;
+    }
+    void setOutlineColor(sf::Color x)
+    {
+        squre.setOutlineColor(x);
+    }
+    void setOutlineThickness(float x)
+    {
+        squre.setOutlineThickness(x);
+    }
+    void setPosition(sf::Vector2f x)
+    {
+        squre.setPosition(x);
+    }
+    void draw(RenderWindow& x)
+    {
+        x.draw(squre);
+    }
+    void setFillColor(sf::Color x)
+    {
+        squre.setFillColor(x);
+    }
+    FloatRect getGlobalBounds()
+    {
+        return squre.getGlobalBounds();
+    }
+    Vector2f getPosition()
+    {
+        return squre.getPosition();
+    }
+};
+
 struct TextureGrid
 {
     TEXTURES_MODULE& textureModule; // Ссылка на объект класса Texture_Module
@@ -85,6 +134,7 @@ struct TextureGrid
         }
     }
 };
+
 // Да это круто, вопросы?
 struct TrailSegment {
     sf::Vector2f position;  // Позиция сегмента следа
@@ -261,11 +311,11 @@ public:
 class World {
 public:
 
-    bool CREATIVE_MODE = 0;
+    bool CREATIVE_MODE = 1;
 
     // Тут мы кучерявим оружие
-    vector<MiniCunn> m_MiniGun;
     vector<Revolver_basic> m_Revolver_basic;
+    vector<MiniCunn> m_MiniGun;
     // Тут мы кучерявим объекты мира
     vector<Wall> m_walls;
     vector<Door> m_doora;
@@ -279,6 +329,8 @@ public:
     CircleShape Cursor;
 
     CameraRoll Kashtan;
+
+    Player Gavrusha;
 
 private:
 
@@ -295,18 +347,19 @@ private:
     const int numSquaresY = worldHeight / squareSize;
 
     // Создаем двумерный вектор для хранения квадратов
-    std::vector<sf::RectangleShape> squares;
+    std::vector<Square> squares;
 
     bool isMoving = false;  // Флаг перемещения
     bool isKeyPressed[10] = { false };
     bool isZoomHandled;
+    bool Can_Player_Spawn = 1;
 
     float MoveKeybordX;
     float MoveKeybordY;
 
     float speed;
 
-    int ColorRape = 1;
+    int ColorRape = 2;
     int TextureIndex[2];
     /// /////////////////////////////////////
 
@@ -318,9 +371,11 @@ private:
 
     void UpdateEnemys(float& deltaTime, RenderWindow& window);
 
+    void UpdateEnemys(float& deltaTime, RenderWindow& window, Player& player, bool x);
+
     /// /////////////////////////////////////
 
-    void CreateOBJ(RectangleShape& sprite);
+    void CreateOBJ(Square& sprite);
 
     void ControlWCR(RenderWindow& window, float dt);
 
@@ -345,9 +400,17 @@ public:
         m_MiniGun.emplace_back(texture, isTaked, position);
     }
 
-    void add_Enemy(Vector2f position, float size, float speed, Color color, float rotate, Texture& texture, float weapCD, int passiveMod, int hp_)
+    void add_Enemy(Vector2f position, float size, float speed, Color color, float rotate, Texture& texture, float weapCD,int passiveMod, int hp_)
     {
         m_enemys.emplace_back(position, size, speed, color, rotate, texture, weapCD, passiveMod, hp_);
+    }
+
+    void add_player(Vector2f position, float size, float speed, Color color)
+    {
+        if (Can_Player_Spawn) {
+            Gavrusha = Player(position, size, speed, color);
+            Can_Player_Spawn = 0;
+        }
     }
 
     void addOMD(Vector2f position, Texture& texture)
@@ -355,73 +418,34 @@ public:
         m_other.emplace_back(position, texture);
     }
 
-    void update(RenderWindow& window, Player& player_2, float dt) { // Рисуем, обновляем коллизию
-        for (auto& wall : m_walls) {
-            wall.update(window, player_2);
-            wall.CheckPaterochka(player_2);
-        }
-        for (auto& door : m_doora) {
-            door.update(window, player_2);
-        }
-        for (auto& makarov : m_Revolver_basic) {
-            makarov.update(dt, player_2, window, m_objects, m_enemys);
-        }
-        for (auto& makarov : m_MiniGun) {
-            makarov.update(dt, player_2, window, m_objects, m_enemys);
-        }
-        if (!CREATIVE_MODE) {
-            WeaponCONTROL();
-            UpdateParticles(dt);
-            UpdateEnemys(dt, window, player_2);
-        }
-        else {
-            // Отрисовка мира
-            for (const auto& square : squares)
-            {
-                window.draw(square);
-            }
-
-            for (auto& square : squares)
-            {
-                if (Cursor.getGlobalBounds().intersects(square.getGlobalBounds()))
-                {
-                    square.setFillColor(Color::Black);
-                    CreateOBJ(square);
-                }
-                else square.setFillColor(Color::White);
-
-            }
-            Movement(dt);
-
-            Kashtan.followPlayer(Cursor.getPosition(), 0.01);
-            Kashtan.update(window);
-            updateTrail(Cursor.getPosition());
-            ControlWCR(window, dt);
-
-            // Отрисовываем след с использованием массива вершин
-            window.draw(trailVertices);
-            window.draw(Cursor);
-        }
-    }
-
     void update(RenderWindow& window, float dt) { // Рисуем, обновляем коллизию
-        for (auto& wall : m_walls) {
-            wall.update(window);
-        }
-        for (auto& door : m_doora) {
-            door.update(window);
-        }
         if (!CREATIVE_MODE) {
+            for (auto& wall : m_walls) {
+                wall.update(window, Gavrusha);
+                wall.CheckPaterochka(Gavrusha);
+            }
+
+            Gavrusha.update(dt, window, Gavrusha);
+
+            for (auto& door : m_doora) {
+                door.update(window, Gavrusha);
+            }
+            for (auto& makarov : m_Revolver_basic) {
+                makarov.update(dt, Gavrusha, window, m_objects, m_enemys);
+            }
+            for (auto& makarov : m_MiniGun) {
+                makarov.update(dt, Gavrusha, window, m_objects, m_enemys);
+            }
+
             WeaponCONTROL();
             UpdateParticles(dt);
-            UpdateEnemys(dt, window);
+            UpdateEnemys(dt, window, Gavrusha);
         }
         else {
             // Отрисовка мира
-
-            for (const auto& square : squares)
+            for (auto& squar : squares)
             {
-                window.draw(square);
+                squar.draw(window);
             }
 
             for (auto& square : squares)
@@ -434,30 +458,33 @@ public:
                 else square.setFillColor(Color::White);
 
             }
-            for (auto& OMD : m_other) {
-                OMD.Update(window);
+            for (auto& wall : m_walls) {
+                wall.update(window, Gavrusha);
+                wall.CheckPaterochka(Gavrusha);
+            }
+            for (auto& door : m_doora) {
+                door.update(window, Gavrusha);
             }
             Movement(dt);
+
+            Gavrusha.update(dt, window, Gavrusha, 0);
 
             Kashtan.followPlayer(Cursor.getPosition(), 0.01);
             Kashtan.update(window);
             updateTrail(Cursor.getPosition());
             ControlWCR(window, dt);
+            UpdateEnemys(dt, window, Gavrusha, 1);
 
-            for (auto& walls : m_walls)
-            {
-                walls.update(window);
-            }
             // Отрисовываем след с использованием массива вершин
             window.draw(trailVertices);
             window.draw(Cursor);
-
         }
     }
 
 
     void SetGlobalObjectBounds()
     {
+        m_objects.clear();
         for (auto& door : m_doora) {
             m_objects.emplace_back(door.getGlobalBounds());
         }
@@ -517,7 +544,7 @@ public:
             // Заполняем вектор квадратами
             for (int i = 0; i < totalSquares; ++i)
             {
-                sf::RectangleShape square(sf::Vector2f(squareWidth, squareHeight));
+                Square square(sf::Vector2f(squareWidth, squareHeight));
                 square.setOutlineThickness(1.0f);  // Толщина границы
                 square.setOutlineColor(sf::Color::Red);  // Цвет границы
                 square.setPosition(sf::Vector2f((i % numSquaresX) * squareWidth, (i / numSquaresX) * squareHeight));
@@ -598,6 +625,13 @@ void World::UpdateEnemys(float& deltaTime, RenderWindow& window, Player& player)
     }
 }
 
+void World::UpdateEnemys(float& deltaTime, RenderWindow& window, Player& player, bool x)
+{
+    for (auto& enemy : m_enemys) {
+        enemy.Update(deltaTime, window, m_objects);
+    }
+}
+
 void World::UpdateEnemys(float& deltaTime, RenderWindow& window)
 {
     for (auto& enemy : m_enemys) {
@@ -610,22 +644,25 @@ void World::UpdateEnemys(float& deltaTime, RenderWindow& window)
 
 
 
-void World::CreateOBJ(RectangleShape& sprite)
+void World::CreateOBJ(Square& sprite)
 {
     // Проверяем состояние клавиши
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num1))
     {
-        if (!isKeyPressed[1])
+       
+        if (sprite.GetObjectDopustim() == 1)
         {
             addWall(sprite.getPosition(), HAMLET.GetWallTexture(1));
+            sprite.setGetObjectDopustim();
             cout << "Ok" << endl;
-            isKeyPressed[1] = true;
         }
+        else {
+            cout << "idnaui" << endl;
+        }
+            isKeyPressed[1] = true;
+        
     }
-    else
-    {
-        isKeyPressed[1] = false;
-    }
+
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num2))
     {
         if (!isKeyPressed[2])
@@ -639,7 +676,64 @@ void World::CreateOBJ(RectangleShape& sprite)
     {
         isKeyPressed[2] = false;
     }
-
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num3))
+    {
+        if (!isKeyPressed[3])
+        {
+            cout << "Ok" << endl;
+            add_player(sprite.getPosition(), 50.f, 300, Color::Red);
+            isKeyPressed[3] = true;
+        }
+    }
+    else
+    {
+        isKeyPressed[3] = false;
+    }
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num4))
+    {
+        if (!isKeyPressed[4])
+        {
+            cout << "Ok" << endl;
+            add_Enemy(sprite.getPosition(), 50.f, 230, Color::Yellow, 0, HAMLET.GetWeaponTexture(1), 0.3f,0,100);
+            isKeyPressed[4] = true;
+        }
+    }
+    else
+    {
+        isKeyPressed[4] = false;
+    }
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num5))
+    {
+        if (!isKeyPressed[5])
+        {
+            cout << "OBJECT FIRED" << endl;
+            SetGlobalObjectBounds();
+            isKeyPressed[5] = true;
+        }
+    }
+    else
+    {
+        isKeyPressed[5] = false;
+    }
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num0))
+    {
+        if (!isKeyPressed[6])
+        {
+            if (CREATIVE_MODE)
+            {
+                CREATIVE_MODE = 0;
+            }
+            else {
+                CREATIVE_MODE = 1;
+            }
+            cout << "DEBUG:" <<CREATIVE_MODE<< endl;
+            isKeyPressed[6] = true;
+        }
+    }
+    else
+    {
+        isKeyPressed[6] = false;
+    }
 }
 
 void World::ControlWCR(RenderWindow& window, float dt)

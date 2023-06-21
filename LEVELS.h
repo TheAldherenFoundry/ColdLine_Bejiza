@@ -49,7 +49,6 @@ struct Level
 
         world = new World(0);
         
-        Player* Hi = new Player(Vector2f(100.f, 100.f), 50.f, 300, Color::Red); // создаем персонажа)
         world->SetGlobalObjectBounds();
     }
 
@@ -58,14 +57,10 @@ struct Level
     }
 
     void Update()
-    {   
-        Hi.update(deltaTime, window, Hi);                                                        
-        world->update(window, Hi, deltaTime);                                         // Отрисовка объектов
-        Hi.draw(window);
-        world->update(window, deltaTime);
+    {                                               
+        world->update(window,deltaTime);                                         // Отрисовка объектов
     }
     
-    Player Hi;
     RenderWindow window;
     float deltaTime;
     Clock deltaClock;
