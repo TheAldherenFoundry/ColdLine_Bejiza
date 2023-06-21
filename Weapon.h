@@ -20,6 +20,8 @@ public:
 	Sprite m_sprite;
 	Clock clock;
 	Clock removalTimer;
+	Sound sound[5];
+	SoundBuffer buffer;
 
 	Vector2f StartDropPosition;
 	Vector2f DropPosition;
@@ -33,6 +35,8 @@ public:
 
 	int ammo = 7;
 	int ammoNum = 0;
+	int soundNum = 0;
+	int volume = 10;
 
 	float epsilon = 1.0f;
 	float reflectionCooldown = 0.0001;
@@ -51,6 +55,9 @@ private:
 
 public:
 	virtual void update(float& dt, Player& player, RenderWindow& window, vector<FloatRect>& Object, vector<Enemy>& m_enemys) {
+		if (Keyboard::isKeyPressed(Keyboard::Hyphen) && volume > 0) volume--;
+		if (Keyboard::isKeyPressed(Keyboard::Equal) && volume < 100) volume++;
+		cout << volume << endl;
 		oneKill = false;
 		cooldown += dt;
 		time += dt;
@@ -77,6 +84,11 @@ public:
 				cooldown = 0;
 				sf::FloatRect bounds = m_sprite.getGlobalBounds(); // Получаем глобальные ограничивающие прямоугольника спрайта
 				sf::Vector2f center(bounds.left + 3 + bounds.width/ 2,bounds.top + 3 + bounds.height / 2); // Вычисляем центр спрайта
+				sound[soundNum].setBuffer(buffer);
+				sound[soundNum].setVolume(volume);
+				sound[soundNum].play();
+				soundNum++;
+				if (soundNum >= 5) soundNum = 0;
 				m_bullet.setPosition(center);
 				m_bullet.SetRotation(m_sprite.getRotation() + 90);
 				m_listBullets.push_back(m_bullet);
@@ -233,6 +245,11 @@ public:
 		this->isTaked = isTaked;
 		DropPosition = position;
 
+		buffer.loadFromFile("sound/Weapon/revolver.wav");
+		for (int i = 0; i < 5; i++) {
+			sound[i].setVolume(volume);
+		}
+
 		ammo = 7;
 		ammoNum = 0;
 		DropSight = 1.f;
@@ -247,6 +264,7 @@ class  MiniCunn : public Weapon
 private:
 
 	bool GunDolo = 0;
+	int volume = 10;
 
 	list<Bullet9x18> m_listBullets;
 	Bullet9x18 m_bullet;
@@ -260,8 +278,10 @@ private:
 	}
 
 public:
-
+	
 	void update(float& dt, Player& player, RenderWindow& window, vector<FloatRect>& Object, vector<Enemy>& m_enemys) {
+		if (Keyboard::isKeyPressed(Keyboard::Hyphen) && volume > 0) volume--;
+		if (Keyboard::isKeyPressed(Keyboard::Equal) && volume < 100) volume++;
 		oneKill = false;
 		cooldown += dt;
 		time += dt;
@@ -287,6 +307,12 @@ public:
 			if ((Mouse::isButtonPressed(Mouse::Left) && ammoNum < ammo && cooldown > cdFire)) {
 				ammoNum++;
 				cooldown = 0;
+
+				sound[soundNum].setBuffer(buffer);
+				sound[soundNum].setVolume(volume);
+				sound[soundNum].play();
+				soundNum++;
+				if (soundNum >= 5) soundNum = 0;
 
 				sf::Vector2f center;
 
@@ -435,6 +461,11 @@ public:
 		this->m_sprite.setTexture(m_texture);
 		this->isTaked = isTaked;
 		DropPosition = position;
+
+		buffer.loadFromFile("sound/Weapon/revolver.wav");
+		for (int i = 0; i < 5; i++) {
+			sound[i].setVolume(volume);
+		}
 
 		ammo = 100;
 		ammoNum = 0;
