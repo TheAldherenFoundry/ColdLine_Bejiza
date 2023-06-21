@@ -79,7 +79,7 @@ int main()
 
     window.setFramerateLimit(120);
 
-    bool DEBUG_INFO = 0;
+    bool DEBUG_INFO = 1;
     float timeFPS = 0;
     int fps = 0;
 

@@ -26,6 +26,28 @@ class Entity
 
 };
 
+struct DeadBody
+{
+private:
+	RectangleShape Body;
+public:
+	DeadBody()
+	{
+
+	}
+	DeadBody(Vector2f pos,Vector2f Size)
+	{
+		Body.setPosition(pos);
+		Body.setSize(Size);
+		Body.setFillColor(Color::White);
+;	}
+	void draw(RenderWindow& x)
+	{
+		x.draw(Body);
+		cout << "1";
+	}
+};
+
 class Player : public Entity
 {
 public:
@@ -241,7 +263,6 @@ public:
 
 		n_body.setRotation(startRotate);
 	}
-
 	void Update(float& deltaTime, RenderWindow& window, vector<FloatRect>& Object, Player& player) {
 		if (hp <= 0) isAlive = false;
 		if (isAlive) {

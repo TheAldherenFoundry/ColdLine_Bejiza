@@ -320,6 +320,7 @@ public:
     vector<Wall> m_walls;
     vector<Door> m_doora;
     vector<Enemy> m_enemys;
+    vector<DeadBody> m_deads;
     vector<OMD_MAIN> m_other;
 
     vector<FloatRect> m_objects;
@@ -383,6 +384,8 @@ private:
 
     void updateTrail(sf::Vector2f position);
 
+    void UpdateDeadBodys(RenderWindow& x);
+
 public:
 
     void addWall(Vector2f position, Texture& texture)
@@ -436,10 +439,20 @@ public:
             for (auto& makarov : m_MiniGun) {
                 makarov.update(dt, Gavrusha, window, m_objects, m_enemys);
             }
-
+            // Итератор для прохода по вектору
+            for (auto it = m_enemys.begin(); it != m_enemys.end(); ++it) {
+                // Проверка условия для каждого объекта
+                if (it->hp <= 0) {
+                    // Удаление объекта из вектора
+                    m_deads.push_back(DeadBody(it->n_body.getPosition(), it->n_body.getSize()));
+                    m_enemys.erase(it);
+                    break; // Если нужно удалить только первый объект, можно прервать цикл
+                }
+            }
             WeaponCONTROL();
             UpdateParticles(dt);
-            UpdateEnemys(dt, window, Gavrusha);
+            UpdateEnemys(dt, window, Gavrusha, 0);
+            UpdateDeadBodys(window);
         }
         else {
             // Отрисовка мира
@@ -628,7 +641,7 @@ void World::UpdateEnemys(float& deltaTime, RenderWindow& window, Player& player)
 void World::UpdateEnemys(float& deltaTime, RenderWindow& window, Player& player, bool x)
 {
     for (auto& enemy : m_enemys) {
-        enemy.Update(deltaTime, window, m_objects);
+        enemy.Update(deltaTime, window, m_objects,  player);
     }
 }
 
@@ -636,6 +649,13 @@ void World::UpdateEnemys(float& deltaTime, RenderWindow& window)
 {
     for (auto& enemy : m_enemys) {
         enemy.Update(deltaTime, window, m_objects);
+    }
+}
+
+void World::UpdateDeadBodys(RenderWindow& x)
+{
+    for (auto& enemybodys : m_deads) {
+        enemybodys.draw(x);
     }
 }
 /////////////////////////////////////////////////////////////////////////////////////
@@ -654,6 +674,7 @@ void World::CreateOBJ(Square& sprite)
         {
             addWall(sprite.getPosition(), HAMLET.GetWallTexture(1));
             sprite.setGetObjectDopustim();
+            //if(sprite.GetObjectDopustim())SetGlobalObjectBounds();
             cout << "Ok" << endl;
         }
         else {
@@ -667,9 +688,13 @@ void World::CreateOBJ(Square& sprite)
     {
         if (!isKeyPressed[2])
         {
-            cout << "Ok" << endl;
-            addOMD(sprite.getPosition(), HAMLET.GetOMDTexture(11));
-            isKeyPressed[2] = true;
+            if (sprite.GetObjectDopustim() == 1)
+            {
+                cout << "Ok" << endl;
+                addOMD(sprite.getPosition(), HAMLET.GetOMDTexture(11));
+                sprite.setGetObjectDopustim();
+                isKeyPressed[2] = true;
+            }
         }
     }
     else
@@ -693,10 +718,14 @@ void World::CreateOBJ(Square& sprite)
     {
         if (!isKeyPressed[4])
         {
-            cout << "Ok" << endl;
-            add_Enemy(sprite.getPosition(), 50.f, 230, Color::Yellow, 0, HAMLET.GetWeaponTexture(1), 0.3f,0,100);
-            isKeyPressed[4] = true;
-        }
+            if (sprite.GetObjectDopustim() == 1)
+            {
+                cout << "Ok" << endl;
+                add_Enemy(sprite.getPosition(), 50.f, 230, Color::Yellow, 0, HAMLET.GetWeaponTexture(1), 0.3f, 0, 1);
+                sprite.setGetObjectDopustim();
+                isKeyPressed[4] = true;
+            }
+        } // И снова здраствуйте , вызов 
     }
     else
     {
@@ -715,9 +744,44 @@ void World::CreateOBJ(Square& sprite)
     {
         isKeyPressed[5] = false;
     }
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num0))
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num6))
     {
         if (!isKeyPressed[6])
+        {
+            if (sprite.GetObjectDopustim() == 1)
+            {
+                cout << "Revolver spawned" << endl;
+                add_Revolver_basic(HAMLET.GetWeaponTexture(1), false, sprite.getPosition());
+                sprite.setGetObjectDopustim();
+                
+            }
+            isKeyPressed[6] = true;
+        }
+    }
+    else
+    {
+        isKeyPressed[6] = false;
+    }
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num7))
+    {
+        if (!isKeyPressed[7])
+        {
+            if (sprite.GetObjectDopustim() == 1)
+            {
+                cout << "Minicunn spawned" << endl;
+                add_MiniGun(HAMLET.GetWeaponTexture(2), false, sprite.getPosition());
+                sprite.setGetObjectDopustim();
+            }
+            isKeyPressed[7] = true;
+        }
+    }
+    else
+    {
+        isKeyPressed[7] = false;
+    }
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num0))
+    {
+        if (!isKeyPressed[8])
         {
             if (CREATIVE_MODE)
             {
@@ -732,7 +796,7 @@ void World::CreateOBJ(Square& sprite)
     }
     else
     {
-        isKeyPressed[6] = false;
+        isKeyPressed[8] = false;
     }
 }
 
