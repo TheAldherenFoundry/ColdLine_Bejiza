@@ -405,10 +405,10 @@ public:
         m_enemys.emplace_back(position, size, speed, color, rotate, texture, weapCD, passiveMod, hp_);
     }
 
-    void add_player(Vector2f position, float size, float speed, Color color)
+    void add_player(Vector2f position, float size, float speed, Color color, int hp)
     {
         if (Can_Player_Spawn) {
-            Gavrusha = Player(position, size, speed, color);
+            Gavrusha = Player(position, size, speed, color, hp);
             Can_Player_Spawn = 0;
         }
     }
@@ -681,7 +681,7 @@ void World::CreateOBJ(Square& sprite)
         if (!isKeyPressed[3])
         {
             cout << "Ok" << endl;
-            add_player(sprite.getPosition(), 50.f, 300, Color::Red);
+            add_player(sprite.getPosition(), 50.f, 300, Color::Red, 5);
             isKeyPressed[3] = true;
         }
     }

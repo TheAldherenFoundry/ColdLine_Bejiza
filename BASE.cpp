@@ -80,6 +80,8 @@ int main()
     window.setFramerateLimit(120);
 
     bool DEBUG_INFO = 0;
+    float timeFPS = 0;
+    int fps = 0;
 
     RectangleShape a(Vector2f(1000, 1000));
 
@@ -92,10 +94,35 @@ int main()
     
     if (!DEBUG_INFO) {
         world->addOMD(Vector2f(100, 0), hi.GetWallTexture(1));
-        world->add_Enemy(Vector2f(400, 500), 50, 50, Color::Blue, 0, hi.GetWeaponTexture(1), 0.3f, 1, 100);
-        world->add_player(Vector2f(100.f, 100.f), 50.f, 300, Color::Red);
+        world->add_Enemy(Vector2f(300, 300), 50, 50, Color::Blue, 0, hi.GetWeaponTexture(1), 0.5f, 1, 3);
+        world->add_Enemy(Vector2f(300, 400), 50, 50, Color::Blue, 0, hi.GetWeaponTexture(1), 0.5f, 1, 3);
+        world->add_Enemy(Vector2f(300, 500), 50, 50, Color::Blue, 0, hi.GetWeaponTexture(1), 0.5f, 1, 3);
+        world->add_Enemy(Vector2f(300, 600), 50, 50, Color::Blue, 0, hi.GetWeaponTexture(1), 0.5f, 1, 3);
+        world->add_Enemy(Vector2f(300, 700), 50, 50, Color::Blue, 0, hi.GetWeaponTexture(1), 0.5f, 1, 3);
+        world->add_Enemy(Vector2f(400, 300), 50, 50, Color::Blue, 0, hi.GetWeaponTexture(1), 0.5f, 1, 3);
+        world->add_Enemy(Vector2f(400, 400), 50, 50, Color::Blue, 0, hi.GetWeaponTexture(1), 0.5f, 1, 3);
+        world->add_Enemy(Vector2f(400, 500), 50, 50, Color::Blue, 0, hi.GetWeaponTexture(1), 0.5f, 1, 3);
+        world->add_Enemy(Vector2f(400, 600), 50, 50, Color::Blue, 0, hi.GetWeaponTexture(1), 0.5f, 1, 3);
+        world->add_Enemy(Vector2f(400, 700), 50, 50, Color::Blue, 0, hi.GetWeaponTexture(1), 0.5f, 1, 3);
+        world->add_Enemy(Vector2f(500, 300), 50, 50, Color::Blue, 0, hi.GetWeaponTexture(1), 0.5f, 1, 3);
+        world->add_Enemy(Vector2f(500, 400), 50, 50, Color::Blue, 0, hi.GetWeaponTexture(1), 0.5f, 1, 3);
+        world->add_Enemy(Vector2f(500, 500), 50, 50, Color::Blue, 0, hi.GetWeaponTexture(1), 0.5f, 1, 3);
+        world->add_Enemy(Vector2f(500, 600), 50, 50, Color::Blue, 0, hi.GetWeaponTexture(1), 0.5f, 1, 3);
+        world->add_Enemy(Vector2f(500, 700), 50, 50, Color::Blue, 0, hi.GetWeaponTexture(1), 0.5f, 1, 3);
+        world->add_Enemy(Vector2f(600, 300), 50, 50, Color::Blue, 0, hi.GetWeaponTexture(1), 0.5f, 1, 3);
+        world->add_Enemy(Vector2f(600, 400), 50, 50, Color::Blue, 0, hi.GetWeaponTexture(1), 0.5f, 1, 3);
+        world->add_Enemy(Vector2f(600, 500), 50, 50, Color::Blue, 0, hi.GetWeaponTexture(1), 0.5f, 1, 3);
+        world->add_Enemy(Vector2f(600, 600), 50, 50, Color::Blue, 0, hi.GetWeaponTexture(1), 0.5f, 1, 3);
+        world->add_Enemy(Vector2f(600, 700), 50, 50, Color::Blue, 0, hi.GetWeaponTexture(1), 0.5f, 1, 3);
+        world->add_Enemy(Vector2f(700, 300), 50, 50, Color::Blue, 0, hi.GetWeaponTexture(1), 0.5f, 1, 3);
+        world->add_Enemy(Vector2f(700, 400), 50, 50, Color::Blue, 0, hi.GetWeaponTexture(1), 0.5f, 1, 3);
+        world->add_Enemy(Vector2f(700, 500), 50, 50, Color::Blue, 0, hi.GetWeaponTexture(1), 0.5f, 1, 3);
+        world->add_Enemy(Vector2f(700, 600), 50, 50, Color::Blue, 0, hi.GetWeaponTexture(1), 0.5f, 1, 3);
+        world->add_Enemy(Vector2f(700, 700), 50, 50, Color::Blue, 0, hi.GetWeaponTexture(1), 0.5f, 1, 3);
+        world->add_player(Vector2f(100.f, 100.f), 50.f, 300, Color::Red, 5);
         
         world->addWall(Vector2f(0, 0), hi.GetWallTexture(1));
+        world->addWall(Vector2f(200, 200), hi.GetWallTexture(1));
 
         world->SetGlobalObjectBounds();
 
@@ -108,6 +135,14 @@ int main()
     {
         Time dt = deltaClock.restart();                          // Кол-во времени между кадрами
         deltaTime = dt.asSeconds();                              // Да!
+
+        timeFPS += deltaTime;
+        fps++;
+        if (timeFPS >= 1) {
+            cout << "FPS: " << fps << endl;
+            timeFPS = 0;
+            fps = 0;
+        }
 
         Event event;
         while (window.pollEvent(event))
