@@ -1,6 +1,7 @@
 #pragma once
 #include "Camera1488.h"
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
 #include <iostream>
 #include <cmath>
 #include <cstdlib>
@@ -234,6 +235,14 @@ public:
 
 		passiveMode = passiveMod;
 
+		buffer.loadFromFile("sound/Weapon/revolver.wav");
+		bufferRun.loadFromFile("sound/run.wav");
+		for(int i = 0; i < 5; i++){
+			sound[i].setVolume(volume);
+		}
+		soundRun.setVolume(volume);
+		soundRun.setBuffer(bufferRun);
+
 		cd = weapCD;
 
 		n_sprite.setTexture(texture);
@@ -243,6 +252,9 @@ public:
 	}
 
 	void Update(float& deltaTime, RenderWindow& window, vector<FloatRect>& Object, Player& player) {
+		if (Keyboard::isKeyPressed(Keyboard::Hyphen) && volume > 0) volume--;
+		if (Keyboard::isKeyPressed(Keyboard::Equal) && volume < 100) volume++;
+		soundRun.setVolume(volume);
 		if (hp <= 0) isAlive = false;
 		if (isAlive) {
 			float circleX = (n_legs.getSize().x - circle.getRadius()) / 2.f + n_legs.getPosition().x;
@@ -536,7 +548,7 @@ public:
 			}
 
 			// ќпредел€ем скорость поворота (здесь можно настроить подход€щее значение)
-			float rotationSpeed = 90.0f;
+			float rotationSpeed = 120.0f;
 
 			// »нтерполируем угол поворота плавно с помощью скорости
 			float rotationStep = rotationSpeed * dt; // deltaTime - врем€ между кадрами
@@ -559,14 +571,16 @@ public:
 			}
 
 			// «адаем начальную и конечную позиции
-			sf::Vector2f startPositio = n_legs.getPosition();
+			sf::Vector2f startPosition = n_legs.getPosition();
 			sf::Vector2f targetPosition = startPosition;
 
 			// «адаем скорость перемещени€ (здесь можно настроить подход€щее значение)
 			float moveSpeed = 100.0f; // пикселей в секунду
 
+			int coll = 0;
+
 			// ¬ычисл€ем вектор направлени€ и длину перемещени€
-			sf::Vector2f direction = targetPosition - startPositio;
+			sf::Vector2f direction = targetPosition - startPosition;
 			float distance = std::sqrt(direction.x * direction.x + direction.y * direction.y);
 
 			// Ќормализуем вектор направлени€
@@ -578,15 +592,69 @@ public:
 			float moveDistance = moveSpeed * dt;
 
 			// ѕровер€ем, достигнута ли конечна€ позици€
-			if (distance <= moveDistance) {
+			if (distance <= moveDistance + 2.f) {
 				// ≈сли рассто€ние меньше или равно рассто€нию, которое можно пройти за один кадр, перемещаемс€ в конечную позицию
 				n_legs.setPosition(targetPosition);
 				dir++;
 			}
 			else {
-				// »наче перемещаемс€ вдоль вектора направлени€ на рассто€ние, соответствующее скорости перемещени€ на текущем кадре
-				sf::Vector2f displacement = direction * moveDistance;
-				n_legs.setPosition(startPositio + displacement);
+				Vector2f anWall(0, 0);
+				// ѕровер€ем, сталкиваетс€ ли персонаж с преп€тствием
+				for (auto& wall : Object) {
+					sf::FloatRect wallBounds = wall;
+					sf::FloatRect characterBounds = n_legs.getGlobalBounds();
+
+					if (n_legs.getGlobalBounds().intersects(wall)) {
+						sf::FloatRect bounds = n_legs.getGlobalBounds(); // ѕолучение охватывающего пр€моугольника объекта n_legs
+
+						float centerX = wall.left + wall.width / 2.0f; // ¬ычисление координаты X середины стены
+						float centerY = wall.top + wall.height / 2.0f; // ¬ычисление координаты Y середины стены
+
+						sf::Vector2f point1(centerX, centerY); // ѕерва€ точка
+						sf::Vector2f point2(n_legs.getPosition()); // ¬тора€ точка
+
+						sf::Vector2f direction = point2 - point1;
+
+						// Ќормализуем вектор направлени€ (делаем его единичной длины)
+						sf::Vector2f normalizedDirection = direction / std::sqrt(direction.x * direction.x + direction.y * direction.y);
+
+						// ”станавливаем значение вектора anWall дл€ перемещени€ в направлении от точки 1 до точки 2
+						float distance = 2.5f; // –ассто€ние, на которое нужно переместитьс€
+						anWall = normalizedDirection * distance;
+					}
+				}
+				if (distance <= moveDistance + 2.f) {
+					// ≈сли рассто€ние меньше или равно рассто€нию, которое можно пройти за один кадр, перемещаемс€ в конечную позицию
+					n_legs.setPosition(targetPosition);
+					dir++;
+				}
+				else {
+					sf::Vector2f displacement = direction * moveDistance + anWall;
+					anWall = Vector2f(0, 0);
+					n_legs.setPosition(startPosition + displacement);
+				}
+			}
+		}
+		int runNum = 0;
+		if (!isFire && dir == 2) {
+			runNum++;
+		}
+		if (!isFire && time1 > 2.f && dir == 0) {
+			runNum++;
+		}
+
+		if (runNum == 1) {
+			if (soundRun.getStatus() != sf::Sound::Playing)
+			{
+				soundRun.setBuffer(bufferRun);
+				if (volume <= 50) soundRun.setVolume(volume * 2);
+				soundRun.play();
+			}
+			run = true;
+		}
+		else {
+			if (soundRun.getStatus() == sf::Sound::Playing) {
+				soundRun.Stopped();
 			}
 		}
 
@@ -613,6 +681,14 @@ public:
 			m_bullet.setPosition(center);
 			m_bullet.SetRotation(n_sprite.getRotation() + 90);
 			m_listBullets.push_back(m_bullet);
+			sound[soundNum1].setBuffer(buffer);
+			if (Keyboard::isKeyPressed(Keyboard::Hyphen) && volume > 0) volume--;
+			if (Keyboard::isKeyPressed(Keyboard::Equal) && volume < 100) volume++;
+			sound[soundNum1].setBuffer(buffer);
+			sound[soundNum1].setVolume(volume);
+			sound[soundNum1].play();
+			soundNum1++;
+			if (soundNum1 >= 5) soundNum1 = 0;
 		}
 		cdfire += dt;
 		time += dt;
@@ -655,6 +731,10 @@ public:
 	list<Bullet9x18> m_listBullets;
 	Bullet9x18 m_bullet;
 	sf::CircleShape circle;
+	sf::Sound sound[5];
+	sf::Sound soundRun;
+	sf::SoundBuffer buffer;
+	sf::SoundBuffer bufferRun;
 	Sprite n_sprite;
 	bool isActive = false; // Ёто нужно чтобы в один момент он перестал двигатьс€ и напал на игрока
 	bool isFire = false;
@@ -664,12 +744,15 @@ public:
 	bool onPos = false;
 	bool numOff = false;
 	bool II_Mode = 1;
+	bool run = false;
 	bool goStartRotate = false;
 	int dir = 0;
+	int soundNum1 = 0;
 	int passiveMode;
 	int temp = 45;
 	int hp = 3;
 	int move = 0;
+	int volume = 10;
 	float n_speed; // —корость
 	float cd;
 	float cdfire = 0;
